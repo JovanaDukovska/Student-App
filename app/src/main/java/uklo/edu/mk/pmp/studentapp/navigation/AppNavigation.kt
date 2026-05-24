@@ -21,23 +21,60 @@ fun AppNavigation() {
     ) {
 
         composable("login") {
-            LoginScreen()
+            LoginScreen(
+                onLoginClick = {
+                    navController.navigate("home") {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
         }
 
         composable("home") {
-            HomeScreen()
+            HomeScreen(
+                onProfileClick = {
+                    navController.navigate("profile")
+                },
+                onReportClick = {
+                    navController.navigate("report")
+                },
+                onNotificationClick = {
+                    navController.navigate("notification")
+                },
+                onLogoutClick = {
+                    navController.navigate("login") {
+                        popUpTo("home") {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
         }
 
         composable("profile") {
-            ProfileScreen()
+            ProfileScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable("report") {
-            ReportScreen()
+            ReportScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable("notification") {
-            NotificationScreen()
+            NotificationScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
