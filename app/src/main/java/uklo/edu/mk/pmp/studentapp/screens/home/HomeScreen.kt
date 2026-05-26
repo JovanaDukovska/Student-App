@@ -407,15 +407,6 @@ fun HomeScreen(
             }
 
             IconButton(
-                onClick = onLogoutClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = "Logout"
-                )
-            }
-
-            IconButton(
                 onClick = onReportClick
             ) {
                 Icon(
@@ -430,6 +421,15 @@ fun HomeScreen(
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Notification"
+                )
+            }
+
+            IconButton(
+                onClick = onLogoutClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Logout"
                 )
             }
         }

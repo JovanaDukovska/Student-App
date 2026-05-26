@@ -9,6 +9,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +25,13 @@ import uklo.edu.mk.pmp.studentapp.R
 fun LoginScreen(
     onLoginClick: () -> Unit
 ) {
+    var selectedLanguage by remember {
+        mutableStateOf("EN")
+    }
+
+    var expandedLanguageMenu by remember {
+        mutableStateOf(false)
+    }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -35,6 +44,54 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = 20.dp,
+                    end = 20.dp
+                ),
+            contentAlignment = Alignment.TopEnd
+        ) {
+
+            TextButton(
+                onClick = {
+                    expandedLanguageMenu =
+                        !expandedLanguageMenu
+                }
+            ) {
+                Text("🌍 $selectedLanguage")
+            }
+
+            DropdownMenu(
+                expanded = expandedLanguageMenu,
+                onDismissRequest = {
+                    expandedLanguageMenu = false
+                }
+            ) {
+
+                DropdownMenuItem(
+                    text = {
+                        Text("MK")
+                    },
+                    onClick = {
+                        selectedLanguage = "MK"
+                        expandedLanguageMenu = false
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = {
+                        Text("EN")
+                    },
+                    onClick = {
+                        selectedLanguage = "EN"
+                        expandedLanguageMenu = false
+                    }
+                )
+            }
+        }
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -67,7 +124,12 @@ fun LoginScreen(
             value = email,
             onValueChange = { email = it },
             label = {
-                Text("Email")
+                Text(
+                    if (selectedLanguage == "MK")
+                        "Е-маил адреса"
+                    else
+                        "Email"
+                )
             },
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier.fillMaxWidth()
@@ -79,7 +141,12 @@ fun LoginScreen(
             value = password,
             onValueChange = { password = it },
             label = {
-                Text("Password")
+                Text(
+                    if (selectedLanguage == "MK")
+                        "Лозинка"
+                    else
+                        "Password"
+                )
             },
             visualTransformation = PasswordVisualTransformation(),
             shape = RoundedCornerShape(20.dp),
@@ -98,7 +165,12 @@ fun LoginScreen(
                 containerColor = Color(0xFF1976D2)
             )
         ) {
-            Text("Login")
+            Text(
+                if (selectedLanguage == "MK")
+                    "Најава"
+                else
+                    "Login"
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -108,13 +180,23 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp)
         ) {
-            Text("Login with Google")
+            Text(
+                if (selectedLanguage == "MK")
+                    "Најава со Google профил"
+                else
+                    "Login with Google"
+            )
         }
 
         TextButton(
             onClick = { }
         ) {
-            Text("Continue as Guest")
+            Text(
+                if (selectedLanguage == "MK")
+                    "Продолжете како гостин"
+                else
+                    "Continue as Guest"
+            )
         }
     }
 }
