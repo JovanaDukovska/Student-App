@@ -2,16 +2,16 @@ package uklo.edu.mk.pmp.studentapp.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +27,13 @@ fun HomeScreen(
     onLogoutClick: () -> Unit
 ) {
 
+    var expandedSemester by remember {
+        mutableStateOf(false)
+    }
+
+    var expandedSubjects by remember {
+        mutableStateOf(false)
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -35,23 +42,137 @@ fun HomeScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 80.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
         ) {
 
+            Spacer(modifier = Modifier.height(40.dp))
+
             Text(
-                text = "Welcome Student",
+                text = "Welcome, Jovana Dukovska",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "Faculty of Information and Communication Technologies",
-                fontSize = 16.sp
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+
+                    Text(
+                        text = "📚 Enrolled Semester",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (expandedSemester) {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text("Semester: Winter")
+                        Text("Program: INKI")
+                        Text("Tuition Fee: 500€")
+                        Text("Payment Status: Paid")
+                    }
+
+                    TextButton(
+                        onClick = {
+                            expandedSemester =
+                                !expandedSemester
+                        }
+                    ) {
+                        Text(
+                            if (expandedSemester)
+                                "Show Less"
+                            else
+                                "Show More"
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+
+                    Text(
+                        text = "💻 Subjects",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    if (expandedSubjects) {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text("Algorithms")
+                        Text("Semester: 5")
+                        Text("ECTS: 6")
+                        Text("Attendance: Yes")
+                        Text("Professor: Dr. Smith")
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Divider()
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text("Databases")
+                        Text("Semester: 5")
+                        Text("ECTS: 6")
+                        Text("Attendance: Yes")
+                        Text("Professor: Dr. Johnson")
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Divider()
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text("Software Engineering")
+                        Text("Semester: 5")
+                        Text("ECTS: 5")
+                        Text("Attendance: No")
+                        Text("Professor: Dr. Williams")
+                    }
+
+                    TextButton(
+                        onClick = {
+                            expandedSubjects =
+                                !expandedSubjects
+                        }
+                    ) {
+                        Text(
+                            if (expandedSubjects)
+                                "Show Less"
+                            else
+                                "Show More"
+                        )
+                    }
+                }
+            }
         }
 
         Row(
@@ -62,30 +183,39 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
 
-            IconButton(onClick = onProfileClick) {
+            IconButton(
+                onClick = onProfileClick
+            ) {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = "Profile"
                 )
             }
 
-            IconButton(onClick = onReportClick) {
+            IconButton(
+                onClick = onLogoutClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Logout"
+                )
+            }
+
+            IconButton(
+                onClick = onReportClick
+            ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Report"
                 )
             }
 
-            IconButton(onClick = onNotificationClick) {
+            IconButton(
+                onClick = onNotificationClick
+            ) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Notification"
-                )
-            }
-            IconButton(onClick = onLogoutClick) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = "Logout"
                 )
             }
         }
