@@ -20,6 +20,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uklo.edu.mk.pmp.studentapp.R
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
@@ -93,6 +96,9 @@ fun LoginScreen(
             }
         }
 
+        val context = LocalContext.current
+        val auth = FirebaseAuth.getInstance()
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -128,7 +134,7 @@ fun LoginScreen(
                     if (selectedLanguage == "MK")
                         "Е-маил адреса"
                     else
-                        "Email"
+                        "email"
                 )
             },
             shape = RoundedCornerShape(20.dp),
@@ -145,7 +151,7 @@ fun LoginScreen(
                     if (selectedLanguage == "MK")
                         "Лозинка"
                     else
-                        "Password"
+                        "password"
                 )
             },
             visualTransformation = PasswordVisualTransformation(),
@@ -157,8 +163,35 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                onLoginClick()
+
+                auth.signInWithEmailAndPassword(
+                    email,
+                    password
+                )
+                    .addOnCompleteListener { task ->
+
+                        if (task.isSuccessful) {
+
+                            Toast.makeText(
+                                context,
+                                "Login successful",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            onLoginClick()
+
+                        } else {
+
+                            Toast.makeText(
+                                context,
+                                task.exception?.message
+                                    ?: "Login failed",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
             },
+
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(

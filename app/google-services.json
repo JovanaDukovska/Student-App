@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "469063198249",
+    "project_id": "studentapp-bddaa",
+    "storage_bucket": "studentapp-bddaa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469063198249:android:774d4af4aba640e456de38",
+        "android_client_info": {
+          "package_name": "uklo.edu.mk.pmp.studentapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLWMZMjOkV0FBUT7Okg94C0005BVPUizM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
