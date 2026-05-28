@@ -21,6 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.LaunchedEffect
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun HomeScreen(
@@ -47,6 +50,161 @@ fun HomeScreen(
 
     var expandedPriceList by remember {
         mutableStateOf(false)
+    }
+
+    var fullName by remember {
+        mutableStateOf("")
+    }
+
+    var Semester by remember {
+        mutableStateOf(0)
+    }
+
+    var Direction by remember {
+        mutableStateOf("")
+    }
+
+    var Average by remember {
+        mutableStateOf(0.0)
+    }
+
+    var Paid by remember {
+        mutableStateOf(false)
+    }
+
+    var index by remember {
+        mutableStateOf("")
+    }
+
+    var tuitionFee by remember {
+        mutableStateOf(0)
+    }
+
+    var semesterType by remember {
+        mutableStateOf("")
+    }
+
+    var subjects by remember {
+        mutableStateOf<List<Map<String, Any>>>(
+            emptyList()
+        )
+    }
+
+    var passedExams by remember {
+        mutableStateOf<List<Map<String, Any>>>(
+            emptyList()
+        )
+    }
+
+    var documents by remember {
+        mutableStateOf<List<Map<String, Any>>>(
+            emptyList()
+        )
+    }
+
+    var priceList by remember {
+        mutableStateOf<List<Map<String, Any>>>(
+            emptyList()
+        )
+    }
+
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+
+    LaunchedEffect(Unit) {
+
+        val currentUser = auth.currentUser
+
+        currentUser?.email?.let { email ->
+
+            db.collection("students")
+                .document(email)
+                .get()
+                .addOnSuccessListener { document ->
+
+                    fullName =
+                        document.getString("fullName")
+                            ?: ""
+
+                    Semester =
+                        document.getLong("Semester")
+                            ?.toInt()
+                            ?: 0
+
+                    Direction =
+                        document.getString("Direction")
+                            ?: ""
+
+                    Average =
+                        document.getDouble("Average")
+                            ?: 0.0
+
+                    Paid =
+                        document.getBoolean("Paid")
+                            ?: false
+
+                    index =
+                        document.getString("index")
+                            ?: ""
+
+                    tuitionFee =
+                        document.getDouble("tuitionFee")
+                            ?.toInt()
+                            ?: 0
+
+                    semesterType =
+                        document.getString("semesterType")
+                            ?: ""
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("subjects")
+                        .get()
+                        .addOnSuccessListener { snapshot ->
+
+                            subjects =
+                                snapshot.documents.map {
+                                    it.data ?: emptyMap()
+                                }
+                        }
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("passedExams")
+                        .get()
+                        .addOnSuccessListener { snapshot ->
+
+                            passedExams =
+                                snapshot.documents.map {
+                                    it.data ?: emptyMap()
+                                }
+                        }
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("documents")
+                        .get()
+                        .addOnSuccessListener { snapshot ->
+
+                            documents =
+                                snapshot.documents.map {
+                                    it.data ?: emptyMap()
+                                }
+                        }
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("priceList")
+                        .get()
+                        .addOnSuccessListener { snapshot ->
+
+                            priceList =
+                                snapshot.documents.map {
+                                    it.data ?: emptyMap()
+                                }
+                        }
+                }
+        }
     }
 
     Box(
@@ -95,7 +253,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Welcome, Jovana Dukovska",
+                text = "Welcome, $fullName",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -126,10 +284,16 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Semester: Winter")
-                        Text("Program: INKI")
-                        Text("Tuition Fee: 500€")
-                        Text("Payment Status: Paid")
+                        Text("Semester: $semesterType")
+                        Text("Semester: ${Semester}")
+                        Text("Program: $Direction")
+                        Text("Tuition Fee: ${tuitionFee}€")
+                        Text(
+                            if (Paid)
+                                "Payment Status: Paid"
+                            else
+                                "Payment Status: Not Paid"
+                        )
                     }
 
                     TextButton(
@@ -147,6 +311,7 @@ fun HomeScreen(
                     }
                 }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -170,37 +335,47 @@ fun HomeScreen(
 
                     if (expandedSubjects) {
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
 
-                        Text("Algorithms")
-                        Text("Semester: 5")
-                        Text("ECTS: 6")
-                        Text("Attendance: Yes")
-                        Text("Professor: Dr. Smith")
+                        subjects.forEach { subject ->
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Name: " +
+                                        (subject["Name"] ?: "")
+                            )
 
-                        Divider()
+                            Text(
+                                text = "Semester: " +
+                                        (subject["Semester"] ?: "")
+                            )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "ECTS: " +
+                                        (subject["EKTS"] ?: "")
+                            )
 
-                        Text("Databases")
-                        Text("Semester: 5")
-                        Text("ECTS: 6")
-                        Text("Attendance: Yes")
-                        Text("Professor: Dr. Johnson")
+                            Text(
+                                text = "Attendance: " +
+                                        (subject["Attendance"] ?: "")
+                            )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Professor: " +
+                                        (subject["Profesor"] ?: "")
+                            )
 
-                        Divider()
+                            Spacer(
+                                modifier = Modifier.height(12.dp)
+                            )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                            HorizontalDivider()
 
-                        Text("Software Engineering")
-                        Text("Semester: 5")
-                        Text("ECTS: 5")
-                        Text("Attendance: No")
-                        Text("Professor: Dr. Williams")
+                            Spacer(
+                                modifier = Modifier.height(12.dp)
+                            )
+                        }
                     }
 
                     TextButton(
@@ -209,15 +384,18 @@ fun HomeScreen(
                                 !expandedSubjects
                         }
                     ) {
+
                         Text(
-                            if (expandedSubjects)
-                                "Show Less"
-                            else
-                                "Show More"
+                            text =
+                                if (expandedSubjects)
+                                    "Show Less"
+                                else
+                                    "Show More"
                         )
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
@@ -240,27 +418,42 @@ fun HomeScreen(
 
                     if (expandedExams) {
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
 
-                        Text("1. INKI101 - Programming")
-                        Text("Grade: 10")
-                        Text("Semester: 1")
+                        passedExams.forEach { exam ->
 
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Divider()
-                        Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Number: " +
+                                        (exam["Number"] ?: "")
+                            )
 
-                        Text("2. INKI205 - Databases")
-                        Text("Grade: 9")
-                        Text("Semester: 3")
+                            Text(
+                                text = "Subject Name: " +
+                                        (exam["SubjectName"] ?: "")
+                            )
 
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Divider()
-                        Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Grade: " +
+                                        (exam["Grade"] ?: "")
+                            )
 
-                        Text("3. INKI310 - Algorithms")
-                        Text("Grade: 8")
-                        Text("Semester: 5")
+                            Text(
+                                text = "Semester: " +
+                                        (exam["Semester"] ?: "")
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(12.dp)
+                            )
+
+                            HorizontalDivider()
+
+                            Spacer(
+                                modifier = Modifier.height(12.dp)
+                            )
+                        }
                     }
 
                     TextButton(
@@ -300,17 +493,21 @@ fun HomeScreen(
 
                     if (expandedDocuments) {
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
 
-                        Text("-> Certificate for Regular Student")
+                        documents.forEach { document ->
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "📄 " +
+                                        (document["Name"] ?: "")
+                            )
 
-                        Text("-> Passed Subjects Certificate")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text("-> Fully Completed Study Program")
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+                        }
                     }
 
                     TextButton(
@@ -351,25 +548,25 @@ fun HomeScreen(
 
                     if (expandedPriceList) {
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
 
-                        Text("📚 Penalty Session Exam: 30€")
+                        priceList.forEach { item ->
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text =
+                                    (item["Name"] ?: "")
+                                        .toString() +
+                                            ": " +
+                                            (item["Price"] ?: "") +
+                                                "€"
+                            )
 
-                        Text("🎓 Semester Fee: 500€")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text("📄 Regular Student Certificate: 3€")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text("📑 Passed Subjects Certificate: 5€")
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text("📘 Full Study Program: 10€")
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+                        }
                     }
 
                     TextButton(
