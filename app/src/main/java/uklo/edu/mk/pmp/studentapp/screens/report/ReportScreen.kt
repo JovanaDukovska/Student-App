@@ -11,6 +11,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun ReportScreen(
@@ -19,14 +25,40 @@ fun ReportScreen(
 
     var expanded by remember { mutableStateOf(false) }
 
-    var programmingRating by remember { mutableStateOf(0) }
-    var mathRating by remember { mutableStateOf(0) }
-    var databaseRating by remember { mutableStateOf(0) }
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+
+    val email =
+        auth.currentUser?.email ?: ""
+
+    var disRating by remember {
+        mutableIntStateOf(0)
+    }
+
+    var mathRating by remember {
+        mutableIntStateOf(0)
+    }
+
+    var aldisRating by remember {
+        mutableIntStateOf(0)
+    }
+
+    var multimediaRating by remember {
+        mutableIntStateOf(0)
+    }
+
+    var evladaRating by remember {
+        mutableIntStateOf(0)
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F9FF))
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(20.dp)
     ) {
 
@@ -98,15 +130,17 @@ fun ReportScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         SubjectRatingCard(
-            subject = "Programming",
-            selectedRating = programmingRating,
+            subject =
+                "Delovni Informaciski Sistemi",
+            selectedRating = disRating,
             onRatingSelected = {
-                programmingRating = it
+                disRating = it
             }
         )
 
         SubjectRatingCard(
-            subject = "Mathematics",
+            subject =
+                "Matematicko Modeliranje",
             selectedRating = mathRating,
             onRatingSelected = {
                 mathRating = it
@@ -114,17 +148,94 @@ fun ReportScreen(
         )
 
         SubjectRatingCard(
-            subject = "Databases",
-            selectedRating = databaseRating,
+            subject = "ALDIS",
+            selectedRating = aldisRating,
             onRatingSelected = {
-                databaseRating = it
+                aldisRating = it
+            }
+        )
+
+        SubjectRatingCard(
+            subject =
+                "Principi na Multimediski Sistemi",
+            selectedRating =
+                multimediaRating,
+            onRatingSelected = {
+                multimediaRating = it
+            }
+        )
+
+        SubjectRatingCard(
+            subject = "E-vlada",
+            selectedRating =
+                evladaRating,
+            onRatingSelected = {
+                evladaRating = it
             }
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = { },
+            onClick = {
+
+                db.collection("students")
+                    .document(email)
+                    .collection("ratings")
+                    .document(
+                        "Delovni informaciski sistemi"
+                    )
+                    .update(
+                        "Rating",
+                        disRating
+                    )
+
+                db.collection("students")
+                    .document(email)
+                    .collection("ratings")
+                    .document(
+                        "Matematichko modeliranje"
+                    )
+                    .update(
+                        "Rating",
+                        mathRating
+                    )
+
+                db.collection("students")
+                    .document(email)
+                    .collection("ratings")
+                    .document("ALDIS")
+                    .update(
+                        "Rating",
+                        aldisRating
+                    )
+
+                db.collection("students")
+                    .document(email)
+                    .collection("ratings")
+                    .document(
+                        "Principi na multimediski sistemi"
+                    )
+                    .update(
+                        "Rating",
+                        multimediaRating
+                    )
+
+                db.collection("students")
+                    .document(email)
+                    .collection("ratings")
+                    .document("E-vlada")
+                    .update(
+                        "Rating",
+                        evladaRating
+                    )
+
+                Toast.makeText(
+                    context,
+                    "Evaluation Saved",
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
