@@ -12,7 +12,20 @@
           "package_name": "uklo.edu.mk.pmp.studentapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "469063198249-mt5tqile3rmcmv8e59pdreqiccqb8k0u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "uklo.edu.mk.pmp.studentapp",
+            "certificate_hash": "dd4959c7b69fb2b7cc51335c5608cd9085069c71"
+          }
+        },
+        {
+          "client_id": "469063198249-ihn200an84a2clf851stvb7vc879fl3j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBLWMZMjOkV0FBUT7Okg94C0005BVPUizM"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "469063198249-ihn200an84a2clf851stvb7vc879fl3j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

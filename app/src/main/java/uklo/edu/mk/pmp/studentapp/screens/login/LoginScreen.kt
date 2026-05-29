@@ -23,6 +23,11 @@ import uklo.edu.mk.pmp.studentapp.R
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.auth.FirebaseAuth
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.GoogleAuthProvider
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 @Composable
 fun LoginScreen(
@@ -38,6 +43,9 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -96,8 +104,65 @@ fun LoginScreen(
             }
         }
 
-        val context = LocalContext.current
+
         val auth = FirebaseAuth.getInstance()
+        val googleLauncher =
+            rememberLauncherForActivityResult(
+                contract =
+                    ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+
+                val task =
+                    GoogleSignIn.getSignedInAccountFromIntent(
+                        result.data
+                    )
+
+                try {
+
+                    val account =
+                        task.result
+
+                    val credential =
+                        GoogleAuthProvider.getCredential(
+                            account.idToken,
+                            null
+                        )
+
+                    auth.signInWithCredential(
+                        credential
+                    ).addOnCompleteListener {
+
+                        if (it.isSuccessful) {
+
+                            Toast.makeText(
+                                context,
+                                "Google Login Successful",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            onLoginClick()
+                        }
+                    }
+
+                } catch (_: Exception) {
+                }
+            }
+
+        val gso =
+            GoogleSignInOptions.Builder(
+                GoogleSignInOptions.DEFAULT_SIGN_IN
+            )
+                .requestIdToken(
+                    "WEB_CLIENT_ID"
+                )
+                .requestEmail()
+                .build()
+
+        val googleSignInClient =
+            GoogleSignIn.getClient(
+                context,
+                gso
+            )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -209,7 +274,12 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(
-            onClick = { },
+            onClick = {
+
+                googleLauncher.launch(
+                    googleSignInClient.signInIntent
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp)
         ) {
