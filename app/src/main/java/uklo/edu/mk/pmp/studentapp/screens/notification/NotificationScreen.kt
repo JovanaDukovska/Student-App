@@ -15,16 +15,67 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.material3.TextButton
+
 
 @Composable
 fun NotificationScreen(
     onBackClick: () -> Unit
 ) {
 
+    val auth =
+        FirebaseAuth.getInstance()
+
+    val db =
+        FirebaseFirestore
+            .getInstance()
+
+    val email =
+        auth.currentUser?.email
+            ?: ""
+
+    var notifications by remember {
+
+        mutableStateOf(
+            listOf<Map<String, Any>>()
+        )
+    }
+
+    LaunchedEffect(Unit) {
+
+        db.collection("students")
+            .document(email)
+            .collection(
+                "notifications"
+            )
+            .get()
+            .addOnSuccessListener {
+
+                notifications =
+                    it.documents.map { doc ->
+
+                        doc.data
+                            ?: emptyMap()
+                    }
+            }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F9FF))
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -38,21 +89,23 @@ fun NotificationScreen(
         )
 
         Spacer(modifier = Modifier.height(20.dp))
+        notifications.forEach { notification ->
 
-        NotificationCard(
-            title = "📝 Programming Test",
-            description = "Monday at 10:00 AM"
-        )
+            NotificationCard(
+                title =
+                    notification["Title"]
+                        .toString(),
 
-        NotificationCard(
-            title = "📚 Database Project Deadline",
-            description = "Friday before 23:59"
-        )
+                description =
+                    notification["Description"]
+                        .toString(),
 
-        NotificationCard(
-            title = "📢 FIKT Announcement",
-            description = "No classes tomorrow"
-        )
+                example =
+                    notification["Example"]
+                        ?.toString()
+                        ?: ""
+            )
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -74,8 +127,13 @@ fun NotificationScreen(
 @Composable
 fun NotificationCard(
     title: String,
-    description: String
+    description: String,
+    example: String = ""
 ) {
+
+    var expanded by remember {
+        mutableStateOf(false)
+    }
 
     Card(
         modifier = Modifier
@@ -85,7 +143,9 @@ fun NotificationCard(
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(6.dp)
+        elevation = CardDefaults.cardElevation(
+            6.dp
+        )
     ) {
 
         Column(
@@ -98,12 +158,50 @@ fun NotificationCard(
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
 
             Text(
                 text = description,
                 fontSize = 16.sp
             )
+
+            if (
+                expanded &&
+                example.isNotEmpty()
+            ) {
+
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
+
+                Text(
+                    text = example,
+                    fontSize = 15.sp
+                )
+            }
+
+            if (
+                example.isNotEmpty()
+            ) {
+
+                TextButton(
+                    onClick = {
+                        expanded =
+                            !expanded
+                    }
+                ) {
+
+                    Text(
+                        if (expanded)
+                            "Show Less"
+                        else
+                            "Show More"
+                    )
+                }
+            }
         }
     }
 }
