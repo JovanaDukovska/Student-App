@@ -29,6 +29,7 @@ import androidx.compose.material3.TextButton
 
 @Composable
 fun NotificationScreen(
+    isGuest: Boolean,
     onBackClick: () -> Unit
 ) {
 
@@ -52,68 +53,116 @@ fun NotificationScreen(
 
     LaunchedEffect(Unit) {
 
-        db.collection("students")
-            .document(email)
-            .collection(
-                "notifications"
-            )
-            .get()
-            .addOnSuccessListener {
+        if (!isGuest && email.isNotEmpty()) {
 
-                notifications =
-                    it.documents.map { doc ->
+            db.collection("students")
+                .document(email)
+                .collection("notifications")
+                .get()
+                .addOnSuccessListener {
 
-                        doc.data
-                            ?: emptyMap()
-                    }
-            }
+                    notifications =
+                        it.documents.map { doc ->
+                            doc.data ?: emptyMap()
+                        }
+                }
+        }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F9FF))
-            .verticalScroll(
-                rememberScrollState()
-            )
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Notifications",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp,
+                    bottom = 100.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
         )
+        {
 
-        Spacer(modifier = Modifier.height(20.dp))
-        notifications.forEach { notification ->
+            Spacer(modifier = Modifier.height(20.dp))
 
-            NotificationCard(
-                title =
-                    notification["Title"]
-                        .toString(),
-
-                description =
-                    notification["Description"]
-                        .toString(),
-
-                example =
-                    notification["Example"]
-                        ?.toString()
-                        ?: ""
+            Text(
+                text = "Notifications",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            if (isGuest) {
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+
+                        Text(
+                            text = "Guest Mode",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
+
+                        Text(
+                            text = "No notifications are available in Guest Mode. Please login to access your student notifications."
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+
+            if (!isGuest) {
+                notifications.forEach { notification ->
+
+                    NotificationCard(
+                        title =
+                            notification["Title"]
+                                .toString(),
+
+                        description =
+                            notification["Description"]
+                                .toString(),
+
+                        example =
+                            notification["Example"]
+                                ?.toString()
+                                ?: ""
+                    )
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = {
                 onBackClick()
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(20.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1976D2)
@@ -121,8 +170,10 @@ fun NotificationScreen(
         ) {
             Text("⬅ Back")
         }
+        }
     }
-}
+
+
 
 @Composable
 fun NotificationCard(

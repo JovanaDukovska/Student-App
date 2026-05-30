@@ -18,8 +18,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 
+
 @Composable
 fun ReportScreen(
+    isGuest: Boolean,
     onBackClick: () -> Unit
 ) {
 
@@ -52,197 +54,240 @@ fun ReportScreen(
         mutableIntStateOf(0)
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F9FF))
-            .verticalScroll(
-                rememberScrollState()
-            )
-            .padding(20.dp)
     ) {
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Course Evaluation",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp,
+                    bottom = 100.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Column(
-                modifier = Modifier.padding(16.dp)
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Course Evaluation",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            if (isGuest) {
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+
+                        Text(
+                            text = "Guest Mode",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
+
+                        Text(
+                            text = "Please login to rate courses."
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
             ) {
 
-                Text(
-                    text = "📢 Announcement",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Your faculty documents are ready."
-                )
-
-                if (expanded) {
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Graduated students can collect their documents from the faculty office."
-                    )
-                }
-
-                TextButton(
-                    onClick = {
-                        expanded = !expanded
-                    }
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
+
                     Text(
-                        if (expanded)
-                            "Show Less"
-                        else
-                            "Show More"
+                        text = "📢 Announcement",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Your faculty documents are ready."
+                    )
+
+                    if (expanded) {
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = "Graduated students can collect their documents from the faculty office."
+                        )
+                    }
+
+                    TextButton(
+                        onClick = {
+                            expanded = !expanded
+                        }
+                    ) {
+                        Text(
+                            if (expanded)
+                                "Show Less"
+                            else
+                                "Show More"
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Please evaluate the courses below.",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        SubjectRatingCard(
-            subject =
-                "Delovni Informaciski Sistemi",
-            selectedRating = disRating,
-            onRatingSelected = {
-                disRating = it
-            }
-        )
-
-        SubjectRatingCard(
-            subject =
-                "Matematicko Modeliranje",
-            selectedRating = mathRating,
-            onRatingSelected = {
-                mathRating = it
-            }
-        )
-
-        SubjectRatingCard(
-            subject = "ALDIS",
-            selectedRating = aldisRating,
-            onRatingSelected = {
-                aldisRating = it
-            }
-        )
-
-        SubjectRatingCard(
-            subject =
-                "Principi na Multimediski Sistemi",
-            selectedRating =
-                multimediaRating,
-            onRatingSelected = {
-                multimediaRating = it
-            }
-        )
-
-        SubjectRatingCard(
-            subject = "E-vlada",
-            selectedRating =
-                evladaRating,
-            onRatingSelected = {
-                evladaRating = it
-            }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = {
-
-                db.collection("students")
-                    .document(email)
-                    .collection("ratings")
-                    .document(
-                        "Delovni informaciski sistemi"
-                    )
-                    .update(
-                        "Rating",
-                        disRating
-                    )
-
-                db.collection("students")
-                    .document(email)
-                    .collection("ratings")
-                    .document(
-                        "Matematichko modeliranje"
-                    )
-                    .update(
-                        "Rating",
-                        mathRating
-                    )
-
-                db.collection("students")
-                    .document(email)
-                    .collection("ratings")
-                    .document("ALDIS")
-                    .update(
-                        "Rating",
-                        aldisRating
-                    )
-
-                db.collection("students")
-                    .document(email)
-                    .collection("ratings")
-                    .document(
-                        "Principi na multimediski sistemi"
-                    )
-                    .update(
-                        "Rating",
-                        multimediaRating
-                    )
-
-                db.collection("students")
-                    .document(email)
-                    .collection("ratings")
-                    .document("E-vlada")
-                    .update(
-                        "Rating",
-                        evladaRating
-                    )
-
-                Toast.makeText(
-                    context,
-                    "Evaluation Saved",
-                    Toast.LENGTH_SHORT
-                ).show()
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1976D2)
+            Text(
+                text = "Please evaluate the courses below.",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium
             )
-        ) {
-            Text("Save Evaluation")
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (!isGuest) {
+                SubjectRatingCard(
+                    subject =
+                        "Delovni Informaciski Sistemi",
+                    selectedRating = disRating,
+                    onRatingSelected = {
+                        disRating = it
+                    }
+                )
+
+                SubjectRatingCard(
+                    subject =
+                        "Matematicko Modeliranje",
+                    selectedRating = mathRating,
+                    onRatingSelected = {
+                        mathRating = it
+                    }
+                )
+
+                SubjectRatingCard(
+                    subject = "ALDIS",
+                    selectedRating = aldisRating,
+                    onRatingSelected = {
+                        aldisRating = it
+                    }
+                )
+
+                SubjectRatingCard(
+                    subject =
+                        "Principi na Multimediski Sistemi",
+                    selectedRating =
+                        multimediaRating,
+                    onRatingSelected = {
+                        multimediaRating = it
+                    }
+                )
+
+                SubjectRatingCard(
+                    subject = "E-vlada",
+                    selectedRating =
+                        evladaRating,
+                    onRatingSelected = {
+                        evladaRating = it
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("ratings")
+                        .document(
+                            "Delovni informaciski sistemi"
+                        )
+                        .update(
+                            "Rating",
+                            disRating
+                        )
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("ratings")
+                        .document(
+                            "Matematichko modeliranje"
+                        )
+                        .update(
+                            "Rating",
+                            mathRating
+                        )
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("ratings")
+                        .document("ALDIS")
+                        .update(
+                            "Rating",
+                            aldisRating
+                        )
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("ratings")
+                        .document(
+                            "Principi na multimediski sistemi"
+                        )
+                        .update(
+                            "Rating",
+                            multimediaRating
+                        )
+
+                    db.collection("students")
+                        .document(email)
+                        .collection("ratings")
+                        .document("E-vlada")
+                        .update(
+                            "Rating",
+                            evladaRating
+                        )
+
+                    Toast.makeText(
+                        context,
+                        "Evaluation Saved",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1976D2)
+                )
+            ) {
+                Text("Save Evaluation")
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -251,8 +296,14 @@ fun ReportScreen(
             onClick = {
                 onBackClick()
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(20.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1976D2)
+            )
         ) {
             Text("⬅ Back")
         }

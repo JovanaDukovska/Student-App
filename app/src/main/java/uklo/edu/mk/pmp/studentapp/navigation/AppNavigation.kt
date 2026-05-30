@@ -14,6 +14,7 @@ import uklo.edu.mk.pmp.studentapp.screens.report.ReportScreen
 fun AppNavigation() {
 
     val navController = rememberNavController()
+    var isGuest = false
 
     NavHost(
         navController = navController,
@@ -23,7 +24,20 @@ fun AppNavigation() {
         composable("login") {
             LoginScreen(
                 onLoginClick = {
-                    navController.navigate("home") {
+                    isGuest = false
+                    navController.navigate(
+                        "home"
+                    ) {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
+                },
+                onGuestClick = {
+                    isGuest = true
+                    navController.navigate(
+                        "home"
+                    ) {
                         popUpTo("login") {
                             inclusive = true
                         }
@@ -34,17 +48,26 @@ fun AppNavigation() {
 
         composable("home") {
             HomeScreen(
+                isGuest = isGuest,
                 onProfileClick = {
-                    navController.navigate("profile")
+                    navController.navigate(
+                        "profile"
+                    )
                 },
                 onReportClick = {
-                    navController.navigate("report")
+                    navController.navigate(
+                        "report"
+                    )
                 },
                 onNotificationClick = {
-                    navController.navigate("notification")
+                    navController.navigate(
+                        "notification"
+                    )
                 },
                 onLogoutClick = {
-                    navController.navigate("login") {
+                    navController.navigate(
+                        "login"
+                    ) {
                         popUpTo("home") {
                             inclusive = true
                         }
@@ -52,9 +75,9 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable("profile") {
             ProfileScreen(
+                isGuest = isGuest,
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -63,6 +86,7 @@ fun AppNavigation() {
 
         composable("report") {
             ReportScreen(
+                isGuest = isGuest,
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -71,6 +95,7 @@ fun AppNavigation() {
 
         composable("notification") {
             NotificationScreen(
+                isGuest = isGuest,
                 onBackClick = {
                     navController.popBackStack()
                 }

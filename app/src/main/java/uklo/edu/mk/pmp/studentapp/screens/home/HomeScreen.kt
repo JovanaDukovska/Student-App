@@ -27,6 +27,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun HomeScreen(
+    isGuest: Boolean,
     onProfileClick: () -> Unit,
     onReportClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -253,10 +254,53 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Welcome, $fullName",
+                text = "Welcome $fullName",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            if (isGuest) {
+
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                Card(
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(20.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                Color.White
+                        )
+                ) {
+
+                    Column(
+                        modifier =
+                            Modifier.padding(20.dp)
+                    ) {
+
+                        Text(
+                            text = "Guest Mode",
+                            fontSize = 22.sp,
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier =
+                                Modifier.height(8.dp)
+                        )
+
+                        Text(
+                            text =
+                                "Login to access student information."
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -332,6 +376,50 @@ fun HomeScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
+
+                    if (isGuest) {
+
+                        Card(
+                            modifier =
+                                Modifier.fillMaxWidth(),
+                            shape =
+                                RoundedCornerShape(20.dp),
+                            colors =
+                                CardDefaults.cardColors(
+                                    containerColor =
+                                        Color.White
+                                )
+                        ) {
+
+                            Column(
+                                modifier =
+                                    Modifier.padding(20.dp)
+                            ) {
+
+                                Text(
+                                    text =
+                                        "Guest Mode",
+                                    fontSize = 22.sp,
+                                    fontWeight =
+                                        FontWeight.Bold
+                                )
+
+                                Spacer(
+                                    modifier =
+                                        Modifier.height(8.dp)
+                                )
+
+                                Text(
+                                    text =
+                                        "Login to access student information."
+                                )
+                            }
+                        }
+                        Spacer(
+                            modifier =
+                                Modifier.height(16.dp)
+                        )
+                    }
 
                     if (expandedSubjects) {
 

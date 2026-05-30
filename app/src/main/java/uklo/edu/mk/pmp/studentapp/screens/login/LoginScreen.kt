@@ -31,7 +31,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onGuestClick: () -> Unit
 ) {
     var selectedLanguage by remember {
         mutableStateOf("EN")
@@ -265,9 +266,9 @@ fun LoginScreen(
         ) {
             Text(
                 if (selectedLanguage == "MK")
-                    "Најава"
+                    "Најава со UKLO профил"
                 else
-                    "Login"
+                    "Login with UKLO account"
             )
         }
 
@@ -292,7 +293,12 @@ fun LoginScreen(
         }
 
         TextButton(
-            onClick = { }
+            onClick = {
+                FirebaseAuth
+                    .getInstance()
+                    .signOut()
+                onGuestClick()
+            }
         ) {
             Text(
                 if (selectedLanguage == "MK")
