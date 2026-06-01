@@ -1,6 +1,10 @@
 package uklo.edu.mk.pmp.studentapp.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,7 +18,18 @@ import uklo.edu.mk.pmp.studentapp.screens.report.ReportScreen
 fun AppNavigation() {
 
     val navController = rememberNavController()
-    var isGuest = false
+
+    var selectedLanguage by remember {
+        mutableStateOf("EN")
+    }
+
+    var isGuest by remember {
+        mutableStateOf(false)
+    }
+
+    var isGoogleRestricted by remember {
+        mutableStateOf(false)
+    }
 
     NavHost(
         navController = navController,
@@ -23,11 +38,15 @@ fun AppNavigation() {
 
         composable("login") {
             LoginScreen(
+                selectedLanguage = selectedLanguage,
+                onLanguageChange = {
+                    selectedLanguage = it
+                },
                 onLoginClick = {
                     isGuest = false
-                    navController.navigate(
-                        "home"
-                    ) {
+                    isGoogleRestricted = false
+
+                    navController.navigate("home") {
                         popUpTo("login") {
                             inclusive = true
                         }
@@ -35,9 +54,19 @@ fun AppNavigation() {
                 },
                 onGuestClick = {
                     isGuest = true
-                    navController.navigate(
-                        "home"
-                    ) {
+                    isGoogleRestricted = false
+
+                    navController.navigate("home") {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
+                },
+                onGoogleRestrictedClick = {
+                    isGuest = false
+                    isGoogleRestricted = true
+
+                    navController.navigate("home") {
                         popUpTo("login") {
                             inclusive = true
                         }
@@ -48,26 +77,23 @@ fun AppNavigation() {
 
         composable("home") {
             HomeScreen(
+                selectedLanguage = selectedLanguage,
+                onLanguageChange = {
+                    selectedLanguage = it
+                },
                 isGuest = isGuest,
+                isGoogleRestricted = isGoogleRestricted,
                 onProfileClick = {
-                    navController.navigate(
-                        "profile"
-                    )
+                    navController.navigate("profile")
                 },
                 onReportClick = {
-                    navController.navigate(
-                        "report"
-                    )
+                    navController.navigate("report")
                 },
                 onNotificationClick = {
-                    navController.navigate(
-                        "notification"
-                    )
+                    navController.navigate("notification")
                 },
                 onLogoutClick = {
-                    navController.navigate(
-                        "login"
-                    ) {
+                    navController.navigate("login") {
                         popUpTo("home") {
                             inclusive = true
                         }
@@ -75,9 +101,15 @@ fun AppNavigation() {
                 }
             )
         }
+
         composable("profile") {
             ProfileScreen(
+                selectedLanguage = selectedLanguage,
+                onLanguageChange = {
+                    selectedLanguage = it
+                },
                 isGuest = isGuest,
+                isGoogleRestricted = isGoogleRestricted,
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -86,7 +118,12 @@ fun AppNavigation() {
 
         composable("report") {
             ReportScreen(
+                selectedLanguage = selectedLanguage,
+                onLanguageChange = {
+                    selectedLanguage = it
+                },
                 isGuest = isGuest,
+                isGoogleRestricted = isGoogleRestricted,
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -95,7 +132,12 @@ fun AppNavigation() {
 
         composable("notification") {
             NotificationScreen(
+                selectedLanguage = selectedLanguage,
+                onLanguageChange = {
+                    selectedLanguage = it
+                },
                 isGuest = isGuest,
+                isGoogleRestricted = isGoogleRestricted,
                 onBackClick = {
                     navController.popBackStack()
                 }

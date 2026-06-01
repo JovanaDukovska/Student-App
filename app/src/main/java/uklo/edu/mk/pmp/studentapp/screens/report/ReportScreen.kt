@@ -1,31 +1,39 @@
 package uklo.edu.mk.pmp.studentapp.screens.report
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-
 
 @Composable
 fun ReportScreen(
+    selectedLanguage: String,
+    onLanguageChange: (String) -> Unit,
     isGuest: Boolean,
+    isGoogleRestricted: Boolean,
     onBackClick: () -> Unit
 ) {
 
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    var expandedLanguageMenu by remember {
+        mutableStateOf(false)
+    }
 
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
@@ -77,19 +85,71 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopEnd
+            ) {
+
+                TextButton(
+                    onClick = {
+                        expandedLanguageMenu =
+                            !expandedLanguageMenu
+                    }
+                ) {
+                    Text("🌍 $selectedLanguage")
+                }
+
+                DropdownMenu(
+                    expanded = expandedLanguageMenu,
+                    onDismissRequest = {
+                        expandedLanguageMenu = false
+                    }
+                ) {
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("MK")
+                        },
+                        onClick = {
+                            onLanguageChange("MK")
+                            expandedLanguageMenu = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("EN")
+                        },
+                        onClick = {
+                            onLanguageChange("EN")
+                            expandedLanguageMenu = false
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Text(
-                text = "Course Evaluation",
+                text =
+                    if (selectedLanguage == "MK")
+                        "Евалуација на предмети"
+                    else
+                        "Course Evaluation",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            if (isGuest) {
+            if (isGuest || isGoogleRestricted) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    )
                 ) {
 
                     Column(
@@ -97,8 +157,13 @@ fun ReportScreen(
                     ) {
 
                         Text(
-                            text = "Guest Mode",
-                            fontWeight = FontWeight.Bold
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Ограничен пристап"
+                                else
+                                    "Restricted Access",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
                         )
 
                         Spacer(
@@ -106,7 +171,11 @@ fun ReportScreen(
                         )
 
                         Text(
-                            text = "Please login to rate courses."
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Најавете се со UKLO профил за да оценувате предмети."
+                                else
+                                    "Please login with your UKLO account to rate courses."
                         )
                     }
                 }
@@ -127,7 +196,11 @@ fun ReportScreen(
                 ) {
 
                     Text(
-                        text = "📢 Announcement",
+                        text =
+                            if (selectedLanguage == "MK")
+                                "📢 Известување"
+                            else
+                                "📢 Announcement",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
@@ -135,14 +208,22 @@ fun ReportScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Your faculty documents are ready."
+                        text =
+                            if (selectedLanguage == "MK")
+                                "Вашите факултетски документи се подготвени."
+                            else
+                                "Your faculty documents are ready."
                     )
 
                     if (expanded) {
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "Graduated students can collect their documents from the faculty office."
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Дипломираните студенти можат да ги подигнат документите од студентската служба."
+                                else
+                                    "Graduated students can collect their documents from the faculty office."
                         )
                     }
 
@@ -153,9 +234,9 @@ fun ReportScreen(
                     ) {
                         Text(
                             if (expanded)
-                                "Show Less"
+                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
                             else
-                                "Show More"
+                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
                         )
                     }
                 }
@@ -163,15 +244,20 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Please evaluate the courses below.",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
+            if (!isGuest && !isGoogleRestricted) {
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text =
+                        if (selectedLanguage == "MK")
+                            "Оценете ги предметите подолу."
+                        else
+                            "Please evaluate the courses below.",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
 
-            if (!isGuest) {
+                Spacer(modifier = Modifier.height(12.dp))
+
                 SubjectRatingCard(
                     subject =
                         "Delovni Informaciski Sistemi",
@@ -216,81 +302,87 @@ fun ReportScreen(
                         evladaRating = it
                     }
                 )
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick = {
+                Button(
+                    onClick = {
 
-                    db.collection("students")
-                        .document(email)
-                        .collection("ratings")
-                        .document(
-                            "Delovni informaciski sistemi"
-                        )
-                        .update(
-                            "Rating",
-                            disRating
-                        )
+                        db.collection("students")
+                            .document(email)
+                            .collection("ratings")
+                            .document(
+                                "Delovni informaciski sistemi"
+                            )
+                            .update(
+                                "Rating",
+                                disRating
+                            )
 
-                    db.collection("students")
-                        .document(email)
-                        .collection("ratings")
-                        .document(
-                            "Matematichko modeliranje"
-                        )
-                        .update(
-                            "Rating",
-                            mathRating
-                        )
+                        db.collection("students")
+                            .document(email)
+                            .collection("ratings")
+                            .document(
+                                "Matematichko modeliranje"
+                            )
+                            .update(
+                                "Rating",
+                                mathRating
+                            )
 
-                    db.collection("students")
-                        .document(email)
-                        .collection("ratings")
-                        .document("ALDIS")
-                        .update(
-                            "Rating",
-                            aldisRating
-                        )
+                        db.collection("students")
+                            .document(email)
+                            .collection("ratings")
+                            .document("ALDIS")
+                            .update(
+                                "Rating",
+                                aldisRating
+                            )
 
-                    db.collection("students")
-                        .document(email)
-                        .collection("ratings")
-                        .document(
-                            "Principi na multimediski sistemi"
-                        )
-                        .update(
-                            "Rating",
-                            multimediaRating
-                        )
+                        db.collection("students")
+                            .document(email)
+                            .collection("ratings")
+                            .document(
+                                "Principi na multimediski sistemi"
+                            )
+                            .update(
+                                "Rating",
+                                multimediaRating
+                            )
 
-                    db.collection("students")
-                        .document(email)
-                        .collection("ratings")
-                        .document("E-vlada")
-                        .update(
-                            "Rating",
-                            evladaRating
-                        )
+                        db.collection("students")
+                            .document(email)
+                            .collection("ratings")
+                            .document("E-vlada")
+                            .update(
+                                "Rating",
+                                evladaRating
+                            )
 
-                    Toast.makeText(
-                        context,
-                        "Evaluation Saved",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1976D2)
-                )
-            ) {
-                Text("Save Evaluation")
+                        Toast.makeText(
+                            context,
+                            if (selectedLanguage == "MK")
+                                "Евалуацијата е зачувана"
+                            else
+                                "Evaluation Saved",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1976D2)
+                    )
+                ) {
+                    Text(
+                        if (selectedLanguage == "MK")
+                            "Зачувај евалуација"
+                        else
+                            "Save Evaluation"
+                    )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
 
         Button(
             onClick = {
@@ -305,7 +397,12 @@ fun ReportScreen(
                 containerColor = Color(0xFF1976D2)
             )
         ) {
-            Text("⬅ Back")
+            Text(
+                if (selectedLanguage == "MK")
+                    "⬅ Назад"
+                else
+                    "⬅ Back"
+            )
         }
     }
 }

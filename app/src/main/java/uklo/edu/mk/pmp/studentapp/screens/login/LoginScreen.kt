@@ -33,12 +33,12 @@ import com.google.firebase.analytics.FirebaseAnalytics
 
 @Composable
 fun LoginScreen(
+    selectedLanguage: String,
+    onLanguageChange: (String) -> Unit,
     onLoginClick: () -> Unit,
-    onGuestClick: () -> Unit
+    onGuestClick: () -> Unit,
+    onGoogleRestrictedClick: () -> Unit
 ) {
-    var selectedLanguage by remember {
-        mutableStateOf("EN")
-    }
 
     var expandedLanguageMenu by remember {
         mutableStateOf(false)
@@ -90,7 +90,7 @@ fun LoginScreen(
                         Text("MK")
                     },
                     onClick = {
-                        selectedLanguage = "MK"
+                        onLanguageChange("MK")
                         expandedLanguageMenu = false
                     }
                 )
@@ -100,7 +100,7 @@ fun LoginScreen(
                         Text("EN")
                     },
                     onClick = {
-                        selectedLanguage = "EN"
+                        onLanguageChange("EN")
                         expandedLanguageMenu = false
                     }
                 )
@@ -137,6 +137,29 @@ fun LoginScreen(
 
                         if (firebaseTask.isSuccessful) {
 
+                            val googleEmail =
+                                auth.currentUser?.email ?: ""
+
+                            if (!googleEmail.endsWith("@uklo.edu.mk")) {
+
+                                FirebaseAnalytics
+                                    .getInstance(context)
+                                    .logEvent(
+                                        "google_restricted_login",
+                                        null
+                                    )
+
+                                Toast.makeText(
+                                    context,
+                                    "Please login with your UKLO account to use this app.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                onGoogleRestrictedClick()
+
+                                return@addOnCompleteListener
+                            }
+
                             FirebaseAnalytics
                                 .getInstance(context)
                                 .logEvent(
@@ -151,6 +174,7 @@ fun LoginScreen(
                             ).show()
 
                             onLoginClick()
+
                         } else {
 
                             Toast.makeText(
@@ -161,6 +185,7 @@ fun LoginScreen(
                             ).show()
                         }
                     }
+
 
                 } catch (_: Exception) {
                 }
@@ -294,9 +319,13 @@ fun LoginScreen(
         Button(
             onClick = {
 
-                googleLauncher.launch(
-                    googleSignInClient.signInIntent
-                )
+                googleSignInClient.signOut()
+                    .addOnCompleteListener {
+
+                        googleLauncher.launch(
+                            googleSignInClient.signInIntent
+                        )
+                    }
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp)

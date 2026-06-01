@@ -2,13 +2,23 @@ package uklo.edu.mk.pmp.studentapp.screens.notification
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,21 +27,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.material3.TextButton
-
 
 @Composable
 fun NotificationScreen(
+    selectedLanguage: String,
+    onLanguageChange: (String) -> Unit,
     isGuest: Boolean,
+    isGoogleRestricted: Boolean,
     onBackClick: () -> Unit
 ) {
+
+    var expandedLanguageMenu by remember {
+        mutableStateOf(false)
+    }
 
     val auth =
         FirebaseAuth.getInstance()
@@ -45,7 +53,6 @@ fun NotificationScreen(
             ?: ""
 
     var notifications by remember {
-
         mutableStateOf(
             listOf<Map<String, Any>>()
         )
@@ -53,7 +60,11 @@ fun NotificationScreen(
 
     LaunchedEffect(Unit) {
 
-        if (!isGuest && email.isNotEmpty()) {
+        if (
+            !isGuest &&
+            !isGoogleRestricted &&
+            email.isNotEmpty()
+        ) {
 
             db.collection("students")
                 .document(email)
@@ -88,24 +99,75 @@ fun NotificationScreen(
                     bottom = 100.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
+        ) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopEnd
+            ) {
+
+                TextButton(
+                    onClick = {
+                        expandedLanguageMenu =
+                            !expandedLanguageMenu
+                    }
+                ) {
+                    Text("🌍 $selectedLanguage")
+                }
+
+                DropdownMenu(
+                    expanded = expandedLanguageMenu,
+                    onDismissRequest = {
+                        expandedLanguageMenu = false
+                    }
+                ) {
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("MK")
+                        },
+                        onClick = {
+                            onLanguageChange("MK")
+                            expandedLanguageMenu = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("EN")
+                        },
+                        onClick = {
+                            onLanguageChange("EN")
+                            expandedLanguageMenu = false
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Text(
-                text = "Notifications",
+                text =
+                    if (selectedLanguage == "MK")
+                        "Известувања"
+                    else
+                        "Notifications",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (isGuest) {
+            if (isGuest || isGoogleRestricted) {
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    )
                 ) {
 
                     Column(
@@ -113,8 +175,13 @@ fun NotificationScreen(
                     ) {
 
                         Text(
-                            text = "Guest Mode",
-                            fontWeight = FontWeight.Bold
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Ограничен пристап"
+                                else
+                                    "Restricted Access",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
                         )
 
                         Spacer(
@@ -122,27 +189,30 @@ fun NotificationScreen(
                         )
 
                         Text(
-                            text = "No notifications are available in Guest Mode. Please login to access your student notifications."
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Најавете се со UKLO профил за да ги видите известувањата."
+                                else
+                                    "Please login with your UKLO account to see notifications."
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
             }
 
+            if (!isGuest && !isGoogleRestricted) {
 
-            if (!isGuest) {
                 notifications.forEach { notification ->
 
                     NotificationCard(
+                        selectedLanguage = selectedLanguage,
                         title =
                             notification["Title"]
                                 .toString(),
-
                         description =
                             notification["Description"]
                                 .toString(),
-
                         example =
                             notification["Example"]
                                 ?.toString()
@@ -151,9 +221,6 @@ fun NotificationScreen(
                 }
             }
         }
-
-
-            Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = {
@@ -168,15 +235,19 @@ fun NotificationScreen(
                 containerColor = Color(0xFF1976D2)
             )
         ) {
-            Text("⬅ Back")
-        }
+            Text(
+                if (selectedLanguage == "MK")
+                    "⬅ Назад"
+                else
+                    "⬅ Back"
+            )
         }
     }
-
-
+}
 
 @Composable
 fun NotificationCard(
+    selectedLanguage: String,
     title: String,
     description: String,
     example: String = ""
@@ -247,9 +318,15 @@ fun NotificationCard(
 
                     Text(
                         if (expanded)
-                            "Show Less"
+                            if (selectedLanguage == "MK")
+                                "Прикажи помалку"
+                            else
+                                "Show Less"
                         else
-                            "Show More"
+                            if (selectedLanguage == "MK")
+                                "Прикажи повеќе"
+                            else
+                                "Show More"
                     )
                 }
             }

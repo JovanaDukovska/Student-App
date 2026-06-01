@@ -27,12 +27,19 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun HomeScreen(
+    selectedLanguage: String,
+    onLanguageChange: (String) -> Unit,
     isGuest: Boolean,
+    isGoogleRestricted: Boolean,
     onProfileClick: () -> Unit,
     onReportClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
+
+    var expandedLanguageMenu by remember {
+        mutableStateOf(false)
+    }
 
     var expandedSemester by remember {
         mutableStateOf(false)
@@ -229,6 +236,45 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopEnd
+            ) {
+
+                TextButton(
+                    onClick = {
+                        expandedLanguageMenu =
+                            !expandedLanguageMenu
+                    }
+                ) {
+                    Text("🌍 $selectedLanguage")
+                }
+
+                DropdownMenu(
+                    expanded = expandedLanguageMenu,
+                    onDismissRequest = {
+                        expandedLanguageMenu = false
+                    }
+                ) {
+
+                    DropdownMenuItem(
+                        text = { Text("MK") },
+                        onClick = {
+                            onLanguageChange("MK")
+                            expandedLanguageMenu = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("EN") },
+                        onClick = {
+                            onLanguageChange("EN")
+                            expandedLanguageMenu = false
+                        }
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -254,8 +300,12 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Welcome $fullName",
-                fontSize = 28.sp,
+                text =
+                    if (selectedLanguage == "MK")
+                        "Добредојде $fullName"
+                    else
+                        "Welcome $fullName",
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
@@ -296,7 +346,10 @@ fun HomeScreen(
 
                         Text(
                             text =
-                                "Login to access student information."
+                                if (selectedLanguage == "MK")
+                                    "Најавете се за пристап до студентски информации."
+                                else
+                                    "Login to access student information."
                         )
                     }
                 }
@@ -317,7 +370,11 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "📚 Enrolled Semester",
+                        text =
+                            if (selectedLanguage == "MK")
+                                "📚 Запишан семестар"
+                            else
+                                "📚 Enrolled Semester",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -348,9 +405,9 @@ fun HomeScreen(
                     ) {
                         Text(
                             if (expandedSemester)
-                                "Show Less"
+                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
                             else
-                                "Show More"
+                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
                         )
                     }
                 }
@@ -372,7 +429,10 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "💻 Subjects",
+                        if (selectedLanguage == "MK")
+                            "💻 Предмети"
+                        else
+                            "💻 Subjects",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -409,8 +469,11 @@ fun HomeScreen(
                                         Modifier.height(8.dp)
                                 )
 
+
                                 Text(
-                                    text =
+                                    if (selectedLanguage == "MK")
+                                        "Најаветесе за да видите информации за студентот"
+                                    else
                                         "Login to access student information."
                                 )
                             }
@@ -474,11 +537,10 @@ fun HomeScreen(
                     ) {
 
                         Text(
-                            text =
-                                if (expandedSubjects)
-                                    "Show Less"
+                                if (expandedSemester)
+                                    if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
                                 else
-                                    "Show More"
+                                    if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
                         )
                     }
                 }
@@ -499,7 +561,10 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "✅ Passed Exams",
+                        if (selectedLanguage == "MK")
+                            "✅ Положени испити"
+                        else
+                            "✅ Passed Exams",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -551,10 +616,10 @@ fun HomeScreen(
                         }
                     ) {
                         Text(
-                            if (expandedExams)
-                                "Show Less"
+                            if (expandedSemester)
+                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
                             else
-                                "Show More"
+                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
                         )
                     }
                 }
@@ -574,7 +639,10 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "📄 Documents",
+                        if (selectedLanguage == "MK")
+                            "📄 Документи"
+                        else
+                            "📄 Documents",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -605,10 +673,10 @@ fun HomeScreen(
                         }
                     ) {
                         Text(
-                            if (expandedDocuments)
-                                "Show Less"
+                            if (expandedSemester)
+                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
                             else
-                                "Show More"
+                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
                         )
                     }
                 }
@@ -629,7 +697,10 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "💰 Price List",
+                        if (selectedLanguage == "MK")
+                            "💰 Ценовник"
+                        else
+                            "💰 Price List",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -664,10 +735,10 @@ fun HomeScreen(
                         }
                     ) {
                         Text(
-                            if (expandedPriceList)
-                                "Show Less"
+                            if (expandedSemester)
+                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
                             else
-                                "Show More"
+                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
                         )
                     }
                 }
