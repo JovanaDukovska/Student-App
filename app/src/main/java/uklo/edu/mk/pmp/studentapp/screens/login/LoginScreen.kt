@@ -28,6 +28,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.GoogleAuthProvider
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.firebase.analytics.FirebaseAnalytics
+
 
 @Composable
 fun LoginScreen(
@@ -106,7 +108,7 @@ fun LoginScreen(
         }
 
 
-        val auth = FirebaseAuth.getInstance()
+
         val googleLauncher =
             rememberLauncherForActivityResult(
                 contract =
@@ -131,9 +133,16 @@ fun LoginScreen(
 
                     auth.signInWithCredential(
                         credential
-                    ).addOnCompleteListener {
+                    ).addOnCompleteListener { firebaseTask ->
 
-                        if (it.isSuccessful) {
+                        if (firebaseTask.isSuccessful) {
+
+                            FirebaseAnalytics
+                                .getInstance(context)
+                                .logEvent(
+                                    "google_login",
+                                    null
+                                )
 
                             Toast.makeText(
                                 context,
@@ -142,6 +151,14 @@ fun LoginScreen(
                             ).show()
 
                             onLoginClick()
+                        } else {
+
+                            Toast.makeText(
+                                context,
+                                firebaseTask.exception?.message
+                                    ?: "Google login failed",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
 
@@ -154,7 +171,7 @@ fun LoginScreen(
                 GoogleSignInOptions.DEFAULT_SIGN_IN
             )
                 .requestIdToken(
-                    "WEB_CLIENT_ID"
+                    "469063198249-ihn200an84a2clf851stvb7vc879fl3j.apps.googleusercontent.com"
                 )
                 .requestEmail()
                 .build()
@@ -294,9 +311,25 @@ fun LoginScreen(
 
         TextButton(
             onClick = {
+
+                FirebaseAnalytics
+                    .getInstance(context)
+                    .logEvent(
+                        "guest_login",
+                        null
+                    )
+
+                Toast.makeText(
+                    context,
+                    "Analytics Event Sent",
+                    Toast.LENGTH_SHORT
+
+                ).show()
+
                 FirebaseAuth
                     .getInstance()
                     .signOut()
+
                 onGuestClick()
             }
         ) {
