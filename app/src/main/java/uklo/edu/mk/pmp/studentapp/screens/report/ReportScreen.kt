@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+data class RatingCourse(
+    val documentId: String,
+    val name: String
+)
+
 @Composable
 fun ReportScreen(
     selectedLanguage: String,
@@ -35,6 +40,17 @@ fun ReportScreen(
         mutableStateOf(false)
     }
 
+    var ratingCourses by remember {
+        mutableStateOf<List<RatingCourse>>(
+            emptyList()
+        )
+    }
+
+    val selectedRatings =
+        remember {
+            mutableStateMapOf<String, Int>()
+        }
+
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -42,24 +58,33 @@ fun ReportScreen(
     val email =
         auth.currentUser?.email ?: ""
 
-    var disRating by remember {
-        mutableIntStateOf(0)
-    }
+    LaunchedEffect(email) {
 
-    var mathRating by remember {
-        mutableIntStateOf(0)
-    }
+        if (!isGuest && email.isNotEmpty()) {
 
-    var aldisRating by remember {
-        mutableIntStateOf(0)
-    }
+            db.collection("students")
+                .document(email)
+                .collection("ratings")
+                .get()
+                .addOnSuccessListener { snapshot ->
 
-    var multimediaRating by remember {
-        mutableIntStateOf(0)
-    }
+                    ratingCourses =
+                        snapshot.documents.map { doc ->
 
-    var evladaRating by remember {
-        mutableIntStateOf(0)
+                            selectedRatings[doc.id] =
+                                doc.getLong("Rating")
+                                    ?.toInt()
+                                    ?: 0
+
+                            RatingCourse(
+                                documentId = doc.id,
+                                name =
+                                    doc.getString("Name")
+                                        ?: doc.id
+                            )
+                        }
+                }
+        }
     }
 
     Box(
@@ -70,10 +95,18 @@ fun ReportScreen(
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .fillMaxHeight()
                 .widthIn(max = 900.dp)
-                .padding(20.dp),
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp,
+                    bottom = 100.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -134,7 +167,7 @@ fun ReportScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            if (isGuest || isGoogleRestricted) {
+            if (isGuest) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -167,9 +200,9 @@ fun ReportScreen(
                         Text(
                             text =
                                 if (selectedLanguage == "MK")
-                                    "Најавете се со UKLO профил за да оценувате предмети."
+                                    "Најавете се за да оценувате предмети."
                                 else
-                                    "Please login with your UKLO account to rate courses."
+                                    "Please login to rate courses."
                         )
                     }
                 }
@@ -228,9 +261,15 @@ fun ReportScreen(
                     ) {
                         Text(
                             if (expanded)
-                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
+                                if (selectedLanguage == "MK")
+                                    "Прикажи помалку"
+                                else
+                                    "Show Less"
                             else
-                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
+                                if (selectedLanguage == "MK")
+                                    "Прикажи повеќе"
+                                else
+                                    "Show More"
                         )
                     }
                 }
@@ -238,7 +277,7 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (!isGuest && !isGoogleRestricted) {
+            if (!isGuest) {
 
                 Text(
                     text =
@@ -252,106 +291,34 @@ fun ReportScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                SubjectRatingCard(
-                    subject =
-                        "Delovni Informaciski Sistemi",
-                    selectedRating = disRating,
-                    onRatingSelected = {
-                        disRating = it
-                    }
-                )
+                ratingCourses.forEach { course ->
 
-                SubjectRatingCard(
-                    subject =
-                        "Matematicko Modeliranje",
-                    selectedRating = mathRating,
-                    onRatingSelected = {
-                        mathRating = it
-                    }
-                )
-
-                SubjectRatingCard(
-                    subject = "ALDIS",
-                    selectedRating = aldisRating,
-                    onRatingSelected = {
-                        aldisRating = it
-                    }
-                )
-
-                SubjectRatingCard(
-                    subject =
-                        "Principi na Multimediski Sistemi",
-                    selectedRating =
-                        multimediaRating,
-                    onRatingSelected = {
-                        multimediaRating = it
-                    }
-                )
-
-                SubjectRatingCard(
-                    subject = "E-vlada",
-                    selectedRating =
-                        evladaRating,
-                    onRatingSelected = {
-                        evladaRating = it
-                    }
-                )
+                    SubjectRatingCard(
+                        subject = course.name,
+                        selectedRating =
+                            selectedRatings[course.documentId] ?: 0,
+                        onRatingSelected = {
+                            selectedRatings[course.documentId] = it
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Button(
                     onClick = {
 
-                        db.collection("students")
-                            .document(email)
-                            .collection("ratings")
-                            .document(
-                                "Delovni informaciski sistemi"
-                            )
-                            .update(
-                                "Rating",
-                                disRating
-                            )
+                        ratingCourses.forEach { course ->
 
-                        db.collection("students")
-                            .document(email)
-                            .collection("ratings")
-                            .document(
-                                "Matematichko modeliranje"
-                            )
-                            .update(
-                                "Rating",
-                                mathRating
-                            )
-
-                        db.collection("students")
-                            .document(email)
-                            .collection("ratings")
-                            .document("ALDIS")
-                            .update(
-                                "Rating",
-                                aldisRating
-                            )
-
-                        db.collection("students")
-                            .document(email)
-                            .collection("ratings")
-                            .document(
-                                "Principi na multimediski sistemi"
-                            )
-                            .update(
-                                "Rating",
-                                multimediaRating
-                            )
-
-                        db.collection("students")
-                            .document(email)
-                            .collection("ratings")
-                            .document("E-vlada")
-                            .update(
-                                "Rating",
-                                evladaRating
-                            )
+                            db.collection("students")
+                                .document(email)
+                                .collection("ratings")
+                                .document(course.documentId)
+                                .update(
+                                    "Rating",
+                                    selectedRatings[course.documentId] ?: 0
+                                )
+                        }
 
                         Toast.makeText(
                             context,
@@ -385,6 +352,7 @@ fun ReportScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .widthIn(max = 900.dp)
                 .padding(20.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(
@@ -437,7 +405,8 @@ fun SubjectRatingCard(
                 for (rating in 1..5) {
 
                     FilterChip(
-                        selected = selectedRating == rating,
+                        selected =
+                            selectedRating == rating,
                         onClick = {
                             onRatingSelected(rating)
                         },

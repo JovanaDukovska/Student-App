@@ -14,6 +14,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun ProfileScreen(
@@ -38,6 +41,73 @@ fun ProfileScreen(
         mutableStateOf(false)
     }
 
+    var fullName by remember { mutableStateOf("") }
+    var index by remember { mutableStateOf("") }
+    var faculty by remember { mutableStateOf("") }
+    var direction by remember { mutableStateOf("") }
+    var semester by remember { mutableStateOf(0) }
+    var average by remember { mutableStateOf(0.0) }
+    var paid by remember { mutableStateOf(false) }
+    var semesterType by remember { mutableStateOf("") }
+    var tuitionFee by remember { mutableStateOf(0) }
+    var email by remember { mutableStateOf("") }
+
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+
+    LaunchedEffect(Unit) {
+
+        val currentEmail =
+            auth.currentUser?.email ?: ""
+
+        email = currentEmail
+
+        if (currentEmail.isNotEmpty()) {
+
+            db.collection("students")
+                .document(currentEmail)
+                .get()
+                .addOnSuccessListener { document ->
+
+                    fullName =
+                        document.getString("fullName") ?: ""
+
+                    index =
+                        document.getString("Index") ?: ""
+
+                    faculty =
+                        document.getString("Faculty") ?: ""
+
+                    direction =
+                        document.getString("Direction") ?: ""
+
+                    semester =
+                        document.getLong("Semester")
+                            ?.toInt()
+                            ?: 0
+
+                    average =
+                        document.getDouble("Average")
+                            ?: 0.0
+
+                    paid =
+                        document.getBoolean("Paid")
+                            ?: false
+
+                    semesterType =
+                        document.getString("semesterType")
+                            ?: ""
+
+                    tuitionFee =
+                        document.getLong("tuitionFee")
+                            ?.toInt()
+                            ?: document.getDouble("tuitionFee")
+                                ?.toInt()
+                                    ?: 0
+                }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,10 +116,18 @@ fun ProfileScreen(
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .fillMaxHeight()
                 .widthIn(max = 900.dp)
-                .padding(20.dp),
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp,
+                    bottom = 100.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -110,7 +188,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            if (isGuest || isGoogleRestricted) {
+            if (isGuest) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -143,15 +221,15 @@ fun ProfileScreen(
                         Text(
                             text =
                                 if (selectedLanguage == "MK")
-                                    "Најавете се со UKLO профил за пристап до вашиот профил."
+                                    "Најавете се за пристап до вашиот профил."
                                 else
-                                    "Please login with your UKLO account to access your profile."
+                                    "Please login to access your profile."
                         )
                     }
                 }
             }
 
-            if (!isGuest && !isGoogleRestricted) {
+            if (!isGuest) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -172,63 +250,74 @@ fun ProfileScreen(
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "👤 Име: Јована Дуковска"
+                                "👤 Име: $fullName"
                             else
-                                "👤 Name: Jovana Dukovska"
+                                "👤 Name: $fullName"
                         )
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "🆔 Индекс: INKI930"
+                                "🆔 Индекс: $index"
                             else
-                                "🆔 Index Number: INKI930"
+                                "🆔 Index: $index"
                         )
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "🎓 Факултет: ФИКТ"
+                                "🎓 Факултет: $faculty"
                             else
-                                "🎓 Faculty: FIKT"
+                                "🎓 Faculty: $faculty"
                         )
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "💻 Студиска програма: Софтверско инженерство"
+                                "💻 Насока: $direction"
                             else
-                                "💻 Study Program: Software Engineering"
+                                "💻 Direction: $direction"
                         )
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "📚 Семестар: 6"
+                                "📚 Семестар: $semester"
                             else
-                                "📚 Semester: 6"
-                        )
-
-                        Text("⭐ ECTS: 180")
-
-                        Text(
-                            if (selectedLanguage == "MK")
-                                "📈 Просечна оценка: 9.2"
-                            else
-                                "📈 Average Grade: 9.2"
+                                "📚 Semester: $semester"
                         )
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "✅ Статус: Активен студент"
+                                "📘 Тип на семестар: $semesterType"
                             else
-                                "✅ Student Status: Active"
+                                "📘 Semester Type: $semesterType"
                         )
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "📅 Академска година: 2025/2026"
+                                "📈 Просек: $average"
                             else
-                                "📅 Academic Year: 2025/2026"
+                                "📈 Average: $average"
                         )
 
-                        Text("📧 Email: student@uklo.edu.mk")
+                        Text(
+                            if (selectedLanguage == "MK")
+                                "💰 Школарина: $tuitionFee€"
+                            else
+                                "💰 Tuition Fee: $tuitionFee€"
+                        )
+
+                        Text(
+                            if (selectedLanguage == "MK")
+                                if (paid)
+                                    "✅ Платено: Да"
+                                else
+                                    "❌ Платено: Не"
+                            else
+                                if (paid)
+                                    "✅ Paid: Yes"
+                                else
+                                    "❌ Paid: No"
+                        )
+
+                        Text("📧 Email: $email")
                     }
                 }
 
@@ -243,6 +332,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .widthIn(max = 900.dp)
                 .padding(20.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(

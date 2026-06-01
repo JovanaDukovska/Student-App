@@ -140,26 +140,6 @@ fun LoginScreen(
                             val googleEmail =
                                 auth.currentUser?.email ?: ""
 
-                            if (!googleEmail.endsWith("@uklo.edu.mk")) {
-
-                                FirebaseAnalytics
-                                    .getInstance(context)
-                                    .logEvent(
-                                        "google_restricted_login",
-                                        null
-                                    )
-
-                                Toast.makeText(
-                                    context,
-                                    "Please login with your UKLO account to use this app.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-
-                                onGoogleRestrictedClick()
-
-                                return@addOnCompleteListener
-                            }
-
                             FirebaseAnalytics
                                 .getInstance(context)
                                 .logEvent(

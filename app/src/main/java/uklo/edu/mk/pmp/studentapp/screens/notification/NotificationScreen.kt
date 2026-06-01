@@ -41,16 +41,11 @@ fun NotificationScreen(
         mutableStateOf(false)
     }
 
-    val auth =
-        FirebaseAuth.getInstance()
-
-    val db =
-        FirebaseFirestore
-            .getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
     val email =
-        auth.currentUser?.email
-            ?: ""
+        auth.currentUser?.email ?: ""
 
     var notifications by remember {
         mutableStateOf(
@@ -58,23 +53,19 @@ fun NotificationScreen(
         )
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(email) {
 
-        if (
-            !isGuest &&
-            !isGoogleRestricted &&
-            email.isNotEmpty()
-        ) {
+        if (!isGuest && email.isNotEmpty()) {
 
             db.collection("students")
                 .document(email)
                 .collection("notifications")
                 .get()
-                .addOnSuccessListener {
+                .addOnSuccessListener { snapshot ->
 
                     notifications =
-                        it.documents.map { doc ->
-                            doc.data ?: emptyMap()
+                        snapshot.documents.mapNotNull { doc ->
+                            doc.data
                         }
                 }
         }
@@ -88,11 +79,18 @@ fun NotificationScreen(
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .fillMaxHeight()
                 .widthIn(max = 900.dp)
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp,
+                    bottom = 120.dp
+                )
         ) {
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -154,7 +152,7 @@ fun NotificationScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (isGuest || isGoogleRestricted) {
+            if (isGuest) {
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -185,9 +183,9 @@ fun NotificationScreen(
                         Text(
                             text =
                                 if (selectedLanguage == "MK")
-                                    "Најавете се со UKLO профил за да ги видите известувањата."
+                                    "Најавете се за да ги видите известувањата."
                                 else
-                                    "Please login with your UKLO account to see notifications."
+                                    "Please login to see notifications."
                         )
                     }
                 }
@@ -195,23 +193,48 @@ fun NotificationScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            if (!isGuest && !isGoogleRestricted) {
+            if (!isGuest) {
 
                 notifications.forEach { notification ->
 
-                    NotificationCard(
-                        selectedLanguage = selectedLanguage,
-                        title =
-                            notification["Title"]
-                                .toString(),
-                        description =
-                            notification["Description"]
-                                .toString(),
-                        example =
-                            notification["Example"]
-                                ?.toString()
+                    val title =
+                        if (selectedLanguage == "MK")
+                            notification["TitleMK"]?.toString()
+                                ?: notification["Title"]?.toString()
                                 ?: ""
-                    )
+                        else
+                            notification["Title"]?.toString()
+                                ?: notification["TitleMK"]?.toString()
+                                ?: ""
+
+                    val description =
+                        if (selectedLanguage == "MK")
+                            notification["DescriptionMK"]?.toString()
+                                ?: notification["Description"]?.toString()
+                                ?: ""
+                        else
+                            notification["Description"]?.toString()
+                                ?: notification["DescriptionMK"]?.toString()
+                                ?: ""
+
+                    val example =
+                        if (selectedLanguage == "MK")
+                            notification["ExampleMK"]?.toString()
+                                ?: notification["Example"]?.toString()
+                                ?: ""
+                        else
+                            notification["Example"]?.toString()
+                                ?: notification["ExampleMK"]?.toString()
+                                ?: ""
+
+                    if (title.isNotEmpty() || description.isNotEmpty()) {
+                        NotificationCard(
+                            selectedLanguage = selectedLanguage,
+                            title = title,
+                            description = description,
+                            example = example
+                        )
+                    }
                 }
             }
         }
@@ -223,6 +246,7 @@ fun NotificationScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .widthIn(max = 900.dp)
                 .padding(20.dp),
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.buttonColors(

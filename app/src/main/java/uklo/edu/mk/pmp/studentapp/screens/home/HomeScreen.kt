@@ -223,11 +223,19 @@ fun HomeScreen(
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .fillMaxHeight()
                 .widthIn(max = 900.dp)
-                .padding(20.dp)
+                .verticalScroll(
+                    rememberScrollState()
                 )
+                .padding(
+                    start = 20.dp,
+                    top = 20.dp,
+                    end = 20.dp,
+                    bottom = 120.dp
+                )
+        )
         {
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -745,6 +753,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .widthIn(max = 900.dp)
                 .padding(20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
