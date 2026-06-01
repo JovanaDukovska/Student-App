@@ -88,16 +88,10 @@ fun NotificationScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(
-                    rememberScrollState()
-                )
-                .padding(
-                    start = 20.dp,
-                    top = 20.dp,
-                    end = 20.dp,
-                    bottom = 100.dp
-                ),
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .widthIn(max = 900.dp)
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 

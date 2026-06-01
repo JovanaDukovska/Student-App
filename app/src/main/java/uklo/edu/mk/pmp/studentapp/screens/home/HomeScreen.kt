@@ -223,14 +223,10 @@ fun HomeScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = 20.dp,
-                    top = 20.dp,
-                    end = 20.dp,
-                    bottom = 120.dp
-                )
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .widthIn(max = 900.dp)
+                .padding(20.dp)
                 )
         {
 
