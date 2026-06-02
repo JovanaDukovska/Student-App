@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.analytics.FirebaseAnalytics
 
 @Composable
 fun HomeScreen(
@@ -119,6 +121,11 @@ fun HomeScreen(
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
 
+    val context = LocalContext.current
+
+    val firebaseAnalytics =
+        FirebaseAnalytics.getInstance(context)
+
     LaunchedEffect(Unit) {
 
         val currentUser = auth.currentUser
@@ -213,6 +220,13 @@ fun HomeScreen(
                         }
                 }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        firebaseAnalytics.logEvent(
+            "home_opened",
+            null
+        )
     }
 
     Box(

@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import android.os.Bundle
+import com.google.firebase.analytics.FirebaseAnalytics
 
 data class RatingCourse(
     val documentId: String,
@@ -54,6 +56,9 @@ fun ReportScreen(
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
+
+    val firebaseAnalytics =
+        FirebaseAnalytics.getInstance(context)
 
     val email =
         auth.currentUser?.email ?: ""
@@ -310,15 +315,65 @@ fun ReportScreen(
 
                         ratingCourses.forEach { course ->
 
+                            val rating =
+                                selectedRatings[course.documentId] ?: 0
+
                             db.collection("students")
                                 .document(email)
                                 .collection("ratings")
                                 .document(course.documentId)
                                 .update(
                                     "Rating",
-                                    selectedRatings[course.documentId] ?: 0
+                                    rating
                                 )
+
+                            if (rating > 0) {
+
+                                val bundle = Bundle()
+
+                                bundle.putString(
+                                    "subject_name",
+                                    course.name
+                                )
+
+                                bundle.putInt(
+                                    "rating_value",
+                                    rating
+                                )
+
+                                bundle.putString(
+                                    "user_email",
+                                    email
+                                )
+
+                                bundle.putString(
+                                    "login_type",
+                                    if (email.endsWith("@uklo.edu.mk"))
+                                        "uklo"
+                                    else
+                                        "google"
+                                )
+
+                                firebaseAnalytics.logEvent(
+                                    "subject_rating_saved",
+                                    bundle
+                                )
+                            }
                         }
+
+                        android.util.Log.d(
+                            "ANALYTICS_TEST",
+                            "Ratings saved by: $email"
+                        )
+
+                        Toast.makeText(
+                            context,
+                            if (selectedLanguage == "MK")
+                                "Евалуацијата е зачувана"
+                            else
+                                "Evaluation Saved",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
                         Toast.makeText(
                             context,
