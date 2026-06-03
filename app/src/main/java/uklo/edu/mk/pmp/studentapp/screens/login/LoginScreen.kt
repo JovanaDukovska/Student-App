@@ -253,8 +253,8 @@ fun LoginScreen(
             onClick = {
 
                 auth.signInWithEmailAndPassword(
-                    email,
-                    password
+                    email.trim(),
+                    password.trim()
                 )
                     .addOnCompleteListener { task ->
 

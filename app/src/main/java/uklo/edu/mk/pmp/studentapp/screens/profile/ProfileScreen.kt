@@ -29,6 +29,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.analytics.FirebaseAnalytics
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import android.content.Intent
+import android.provider.MediaStore
 
 @Composable
 fun ProfileScreen(
@@ -41,6 +51,72 @@ fun ProfileScreen(
 
     var expandedLanguageMenu by remember {
         mutableStateOf(false)
+    }
+
+    var expandedIndexImage by remember {
+        mutableStateOf(false)
+    }
+
+    val context = LocalContext.current
+
+    val openCamera = {
+        val intent =
+            Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+        context.startActivity(intent)
+    }
+
+    var capturedImage by remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+    val currentEmail =
+        FirebaseAuth.getInstance()
+            .currentUser?.email ?: ""
+
+    val sharedPreferences =
+        context.getSharedPreferences(
+            "profile_prefs",
+            android.content.Context.MODE_PRIVATE
+        )
+
+    var selectedImageUri by remember {
+        mutableStateOf<Uri?>(
+            sharedPreferences
+                .getString(
+                    "profile_image_uri_$currentEmail",
+                    null
+                )
+                ?.let { Uri.parse(it) }
+        )
+    }
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicturePreview()
+        ) { bitmap ->
+
+            capturedImage = bitmap
+            selectedImageUri = null
+        }
+
+    val galleryLauncher =
+    rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+
+        if (uri != null) {
+
+            selectedImageUri = uri
+            capturedImage = null
+            sharedPreferences
+                .edit()
+                .putString(
+                    "profile_image_uri_$currentEmail",
+                    uri.toString()
+                )
+                .apply()
+        }
     }
 
     var fullName by remember { mutableStateOf("") }
@@ -56,8 +132,6 @@ fun ProfileScreen(
 
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
-
-    val context = LocalContext.current
 
     val firebaseAnalytics =
         FirebaseAnalytics.getInstance(context)
@@ -336,7 +410,124 @@ fun ProfileScreen(
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+
+                        Text(
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "📸 Слика од индекс"
+                                else
+                                    "📸 Image of Index",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        TextButton(
+                            onClick = {
+                                expandedIndexImage =
+                                    !expandedIndexImage
+                            }
+                        ) {
+                            Text(
+                                if (expandedIndexImage)
+                                    if (selectedLanguage == "MK")
+                                        "Прикажи помалку"
+                                    else
+                                        "Show Less"
+                                else
+                                    if (selectedLanguage == "MK")
+                                        "Прикажи повеќе"
+                                    else
+                                        "Show More"
+                            )
+                        }
+
+                        if (expandedIndexImage) {
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Button(
+                                onClick = {
+                                    openCamera()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF1976D2)
+                                )
+                            ) {
+                                Text(
+                                    if (selectedLanguage == "MK")
+                                        "📷 Сликај индекс"
+                                    else
+                                        "📷 Take Photo"
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Button(
+                                onClick = {
+                                    galleryLauncher.launch("image/*")
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF1976D2)
+                                )
+                            ) {
+                                Text(
+                                    if (selectedLanguage == "MK")
+                                        "🖼️ Избери слика"
+                                    else
+                                        "🖼️ Choose Photo"
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            capturedImage?.let { bitmap ->
+
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "Index Image",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
+                            selectedImageUri?.let { uri ->
+
+                                AsyncImage(
+                                    model = uri,
+                                    contentDescription = "Index Image",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
             }
+
         }
 
         Button(
