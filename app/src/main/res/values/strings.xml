@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Student App</string>
+    <string name="facebook_app_id">ТУКА_ЌЕ_БИДЕ_FACEBOOK_APP_ID</string>
+    <string name="fb_login_protocol_scheme">fbТУКА_ЌЕ_БИДЕ_FACEBOOK_APP_ID</string>
 </resources>

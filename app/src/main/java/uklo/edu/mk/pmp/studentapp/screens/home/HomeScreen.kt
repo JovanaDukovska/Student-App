@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.analytics.FirebaseAnalytics
+import androidx.compose.material3.HorizontalDivider
 
 @Composable
 fun HomeScreen(
@@ -126,7 +127,7 @@ fun HomeScreen(
     val firebaseAnalytics =
         FirebaseAnalytics.getInstance(context)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(selectedLanguage) {
 
         val currentUser = auth.currentUser
 
@@ -147,8 +148,14 @@ fun HomeScreen(
                             ?: 0
 
                     Direction =
-                        document.getString("Direction")
-                            ?: ""
+                        if (selectedLanguage == "MK")
+                            document.getString("DirectionMK")
+                                ?: document.getString("Direction")
+                                ?: ""
+                        else
+                            document.getString("Direction")
+                                ?: document.getString("DirectionMK")
+                                ?: ""
 
                     Average =
                         document.getDouble("Average")
@@ -168,8 +175,14 @@ fun HomeScreen(
                             ?: 0
 
                     semesterType =
-                        document.getString("semesterType")
-                            ?: ""
+                        if (selectedLanguage == "MK")
+                            document.getString("semesterTypeMK")
+                                ?: document.getString("semesterType")
+                                ?: ""
+                        else
+                            document.getString("semesterType")
+                                ?: document.getString("semesterTypeMK")
+                                ?: ""
 
                     db.collection("students")
                         .document(email)
@@ -403,15 +416,50 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Semester: $semesterType")
-                        Text("Semester: ${Semester}")
-                        Text("Program: $Direction")
-                        Text("Tuition Fee: ${tuitionFee}€")
                         Text(
-                            if (Paid)
-                                "Payment Status: Paid"
-                            else
-                                "Payment Status: Not Paid"
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Тип на семестар: $semesterType"
+                                else
+                                    "Semester Type: $semesterType"
+                        )
+
+                        Text(
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Семестар: $Semester"
+                                else
+                                    "Semester: $Semester"
+                        )
+
+                        Text(
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Насока: $Direction"
+                                else
+                                    "Program: $Direction"
+                        )
+
+                        Text(
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "Школарина: $tuitionFee денари"
+                                else
+                                    "Tuition Fee: ${tuitionFee}€"
+                        )
+
+                        Text(
+                            text =
+                                if (selectedLanguage == "MK")
+                                    if (Paid)
+                                        "Статус на плаќање: Платено"
+                                    else
+                                        "Статус на плаќање: Не е платено"
+                                else
+                                    if (Paid)
+                                        "Payment Status: Paid"
+                                    else
+                                        "Payment Status: Not Paid"
                         )
                     }
 
@@ -423,9 +471,15 @@ fun HomeScreen(
                     ) {
                         Text(
                             if (expandedSemester)
-                                if (selectedLanguage == "MK") "Прикажи помалку" else "Show Less"
+                                if (selectedLanguage == "MK")
+                                    "Прикажи помалку"
+                                else
+                                    "Show Less"
                             else
-                                if (selectedLanguage == "MK") "Прикажи повеќе" else "Show More"
+                                if (selectedLanguage == "MK")
+                                    "Прикажи повеќе"
+                                else
+                                    "Show More"
                         )
                     }
                 }
@@ -510,39 +564,69 @@ fun HomeScreen(
 
                         subjects.forEach { subject ->
 
-                            Text(
-                                text = "Name: " +
-                                        (subject["Name"] ?: "")
-                            )
+                            val subjectName =
+                                if (selectedLanguage == "MK")
+                                    subject["NameMK"] ?: subject["Name"] ?: ""
+                                else
+                                    subject["Name"] ?: subject["NameMK"] ?: ""
+
+                            val attendance =
+                                if (selectedLanguage == "MK")
+                                    subject["AttendanceMK"] ?: subject["Attendance"] ?: ""
+                                else
+                                    subject["Attendance"] ?: subject["AttendanceMK"] ?: ""
+
+                            val professor =
+                                if (selectedLanguage == "MK")
+                                    subject["ProfesorMK"] ?: subject["Profesor"] ?: ""
+                                else
+                                    subject["Profesor"] ?: subject["ProfesorMK"] ?: ""
 
                             Text(
-                                text = "Semester: " +
-                                        (subject["Semester"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Име: $subjectName"
+                                    else
+                                        "Name: $subjectName"
                             )
 
                             Text(
-                                text = "ECTS: " +
-                                        (subject["EKTS"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Семестар: ${subject["Semester"] ?: ""}"
+                                    else
+                                        "Semester: ${subject["Semester"] ?: ""}"
                             )
 
                             Text(
-                                text = "Attendance: " +
-                                        (subject["Attendance"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "ЕКТС: ${subject["EKTS"] ?: ""}"
+                                    else
+                                        "ECTS: ${subject["EKTS"] ?: ""}"
                             )
 
                             Text(
-                                text = "Professor: " +
-                                        (subject["Profesor"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Присуство: $attendance"
+                                    else
+                                        "Attendance: $attendance"
                             )
 
-                            Spacer(
-                                modifier = Modifier.height(12.dp)
+                            Text(
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Професор: $professor"
+                                    else
+                                        "Professor: $professor"
                             )
+                            HorizontalDivider(
+                                thickness = 1.dp,
+                                color = Color.LightGray
 
-                            HorizontalDivider()
-
-                            Spacer(
-                                modifier = Modifier.height(12.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp)
                             )
                         }
                     }
@@ -595,34 +679,48 @@ fun HomeScreen(
 
                         passedExams.forEach { exam ->
 
-                            Text(
-                                text = "Number: " +
-                                        (exam["Number"] ?: "")
-                            )
+                            val subjectName =
+                                if (selectedLanguage == "MK")
+                                    exam["SubjectNameMK"] ?: exam["SubjectName"] ?: ""
+                                else
+                                    exam["SubjectName"] ?: exam["SubjectNameMK"] ?: ""
 
                             Text(
-                                text = "Subject Name: " +
-                                        (exam["SubjectName"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Број: ${exam["Number"] ?: ""}"
+                                    else
+                                        "Number: ${exam["Number"] ?: ""}"
                             )
 
                             Text(
-                                text = "Grade: " +
-                                        (exam["Grade"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Предмет: $subjectName"
+                                    else
+                                        "Subject Name: $subjectName"
                             )
 
                             Text(
-                                text = "Semester: " +
-                                        (exam["Semester"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Оценка: ${exam["Grade"] ?: ""}"
+                                    else
+                                        "Grade: ${exam["Grade"] ?: ""}"
                             )
 
-                            Spacer(
-                                modifier = Modifier.height(12.dp)
+                            Text(
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "Семестар: ${exam["Semester"] ?: ""}"
+                                    else
+                                        "Semester: ${exam["Semester"] ?: ""}"
                             )
-
-                            HorizontalDivider()
-
-                            Spacer(
-                                modifier = Modifier.height(12.dp)
+                            HorizontalDivider(
+                                thickness = 1.dp,
+                                color = Color.LightGray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp)
                             )
                         }
                     }
@@ -673,9 +771,22 @@ fun HomeScreen(
 
                         documents.forEach { document ->
 
+                            val documentName =
+                                if (selectedLanguage == "MK")
+                                    document["NameMK"]
+                                        ?: document["Name"]
+                                        ?: ""
+                                else
+                                    document["Name"]
+                                        ?: document["NameMK"]
+                                        ?: ""
+
                             Text(
-                                text = "📄 " +
-                                        (document["Name"] ?: "")
+                                text =
+                                    if (selectedLanguage == "MK")
+                                        "📄 Документ: $documentName"
+                                    else
+                                        "📄 Document: $documentName"
                             )
 
                             Spacer(
@@ -731,13 +842,32 @@ fun HomeScreen(
 
                         priceList.forEach { item ->
 
+                            val priceName =
+                                if (selectedLanguage == "MK")
+                                    item["NameMK"]
+                                        ?: item["Name"]
+                                        ?: ""
+                                else
+                                    item["Name"]
+                                        ?: item["NameMK"]
+                                        ?: ""
+
+                            val priceValue =
+                                if (selectedLanguage == "MK")
+                                    item["PriceMK"]
+                                        ?: item["Price"]
+                                        ?: ""
+                                else
+                                    item["Price"]
+                                        ?: item["PriceMK"]
+                                        ?: ""
+
                             Text(
                                 text =
-                                    (item["Name"] ?: "")
-                                        .toString() +
-                                            ": " +
-                                            (item["Price"] ?: "") +
-                                                "€"
+                                    if (selectedLanguage == "MK")
+                                        "$priceName: $priceValue денари"
+                                    else
+                                        "$priceName: $priceValue€"
                             )
 
                             Spacer(

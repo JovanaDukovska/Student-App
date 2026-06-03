@@ -318,6 +318,25 @@ fun LoginScreen(
             )
         }
 
+        Button(
+            onClick = {
+                Toast.makeText(
+                    context,
+                    "Facebook Login integration is prepared, but Meta verification is required for App ID.",
+                    Toast.LENGTH_LONG
+                ).show()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Text(
+                if (selectedLanguage == "MK")
+                    "Најава со Facebook"
+                else
+                    "Login with Facebook"
+            )
+        }
+
         TextButton(
             onClick = {
 

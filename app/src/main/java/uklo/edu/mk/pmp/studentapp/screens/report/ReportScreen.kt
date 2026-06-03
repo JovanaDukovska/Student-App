@@ -63,7 +63,7 @@ fun ReportScreen(
     val email =
         auth.currentUser?.email ?: ""
 
-    LaunchedEffect(email) {
+    LaunchedEffect(email, selectedLanguage) {
 
         if (!isGuest && email.isNotEmpty()) {
 
@@ -84,8 +84,14 @@ fun ReportScreen(
                             RatingCourse(
                                 documentId = doc.id,
                                 name =
-                                    doc.getString("Name")
-                                        ?: doc.id
+                                    if (selectedLanguage == "MK")
+                                        doc.getString("SubjectMK")
+                                            ?: doc.getString("Subject")
+                                            ?: doc.id
+                                    else
+                                        doc.getString("Subject")
+                                            ?: doc.getString("SubjectMK")
+                                            ?: doc.id
                             )
                         }
                 }
@@ -165,7 +171,7 @@ fun ReportScreen(
             Text(
                 text =
                     if (selectedLanguage == "MK")
-                        "Евалуација на предмети"
+                        "Оценување на предмети"
                     else
                         "Course Evaluation",
                 fontSize = 28.sp,

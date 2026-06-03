@@ -39,6 +39,13 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import android.content.Intent
 import android.provider.MediaStore
+import androidx.compose.material3.OutlinedTextField
+import kotlinx.coroutines.launch
+import uklo.edu.mk.pmp.studentapp.data.local.AppDatabase
+import uklo.edu.mk.pmp.studentapp.data.local.StudentTask
+import androidx.compose.runtime.rememberCoroutineScope
+
+
 
 @Composable
 fun ProfileScreen(
@@ -68,6 +75,10 @@ fun ProfileScreen(
 
     var capturedImage by remember {
         mutableStateOf<Bitmap?>(null)
+    }
+
+    var expandedTasks by remember {
+        mutableStateOf(false)
     }
 
     val currentEmail =
@@ -101,23 +112,23 @@ fun ProfileScreen(
         }
 
     val galleryLauncher =
-    rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
 
-        if (uri != null) {
+            if (uri != null) {
 
-            selectedImageUri = uri
-            capturedImage = null
-            sharedPreferences
-                .edit()
-                .putString(
-                    "profile_image_uri_$currentEmail",
-                    uri.toString()
-                )
-                .apply()
+                selectedImageUri = uri
+                capturedImage = null
+                sharedPreferences
+                    .edit()
+                    .putString(
+                        "profile_image_uri_$currentEmail",
+                        uri.toString()
+                    )
+                    .apply()
+            }
         }
-    }
 
     var fullName by remember { mutableStateOf("") }
     var index by remember { mutableStateOf("") }
@@ -136,7 +147,21 @@ fun ProfileScreen(
     val firebaseAnalytics =
         FirebaseAnalytics.getInstance(context)
 
-    LaunchedEffect(Unit) {
+    val database =
+        AppDatabase.getDatabase(context)
+
+    val coroutineScope =
+        rememberCoroutineScope()
+
+    var taskText by remember {
+        mutableStateOf("")
+    }
+
+    var studentTasks by remember {
+        mutableStateOf<List<StudentTask>>(emptyList())
+    }
+
+    LaunchedEffect(selectedLanguage) {
 
         val currentEmail =
             auth.currentUser?.email ?: ""
@@ -157,10 +182,24 @@ fun ProfileScreen(
                         document.getString("Index") ?: ""
 
                     faculty =
-                        document.getString("Faculty") ?: ""
+                        if (selectedLanguage == "MK")
+                            document.getString("FacultyMK")
+                                ?: document.getString("Faculty")
+                                ?: ""
+                        else
+                            document.getString("Faculty")
+                                ?: document.getString("FacultyMK")
+                                ?: ""
 
                     direction =
-                        document.getString("Direction") ?: ""
+                        if (selectedLanguage == "MK")
+                            document.getString("DirectionMK")
+                                ?: document.getString("Direction")
+                                ?: ""
+                        else
+                            document.getString("Direction")
+                                ?: document.getString("DirectionMK")
+                                ?: ""
 
                     semester =
                         document.getLong("Semester")
@@ -176,8 +215,14 @@ fun ProfileScreen(
                             ?: false
 
                     semesterType =
-                        document.getString("semesterType")
-                            ?: ""
+                        if (selectedLanguage == "MK")
+                            document.getString("semesterTypeMK")
+                                ?: document.getString("semesterType")
+                                ?: ""
+                        else
+                            document.getString("semesterType")
+                                ?: document.getString("semesterTypeMK")
+                                ?: ""
 
                     tuitionFee =
                         document.getLong("tuitionFee")
@@ -189,18 +234,21 @@ fun ProfileScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        firebaseAnalytics.logEvent(
-            "profile_opened",
-            null
-        )
+    LaunchedEffect(currentEmail) {
+
+        if (currentEmail.isNotEmpty()) {
+
+            studentTasks =
+                database.studentTaskDao()
+                    .getTasks(currentEmail)
+        }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F9FF))
-    ) {
+    )   {
 
         Column(
             modifier = Modifier
@@ -387,7 +435,7 @@ fun ProfileScreen(
 
                         Text(
                             if (selectedLanguage == "MK")
-                                "💰 Школарина: $tuitionFee€"
+                                "💰 Школарина: $tuitionFee денари"
                             else
                                 "💰 Tuition Fee: $tuitionFee€"
                         )
@@ -525,6 +573,114 @@ fun ProfileScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        Text(
+                            text =
+                                if (selectedLanguage == "MK")
+                                    "📋 Студентски задачи"
+                                else
+                                    "📋 Student Tasks",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        OutlinedTextField(
+                            value = taskText,
+                            onValueChange = {
+                                taskText = it
+                            },
+                            label = {
+                                Text(
+                                    if (selectedLanguage == "MK")
+                                        "Внеси задача"
+                                    else
+                                        "Enter task"
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+
+                        Button(
+                            onClick = {
+                                if (taskText.isNotBlank()) {
+                                    coroutineScope.launch {
+                                        database.studentTaskDao().insertTask(
+                                            StudentTask(
+                                                userEmail = currentEmail,
+                                                taskText = taskText,
+                                                completed = false
+                                            )
+                                        )
+
+                                        studentTasks =
+                                            database.studentTaskDao()
+                                                .getTasks(currentEmail)
+
+                                        taskText = ""
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1976D2)
+                            )
+                        ) {
+                            Text(
+                                if (selectedLanguage == "MK")
+                                    "Додај задача"
+                                else
+                                    "Add Task"
+                            )
+                        }
+
+                        TextButton(
+                            onClick = {
+                                expandedTasks = !expandedTasks
+                            }
+                        ) {
+                            Text(
+                                if (expandedTasks)
+                                    if (selectedLanguage == "MK")
+                                        "Прикажи помалку"
+                                    else
+                                        "Show Less"
+                                else
+                                    if (selectedLanguage == "MK")
+                                        "Прикажи повеќе"
+                                    else
+                                        "Show More"
+                            )
+                        }
+
+                        if (expandedTasks) {
+                            studentTasks.forEach { task ->
+
+                                Text(
+                                    text = "• ${task.taskText}",
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(30.dp))
             }
 
@@ -551,5 +707,6 @@ fun ProfileScreen(
                     "⬅ Back"
             )
         }
+
     }
 }
