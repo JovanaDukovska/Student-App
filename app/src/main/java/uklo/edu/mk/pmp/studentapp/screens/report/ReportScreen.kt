@@ -60,15 +60,29 @@ fun ReportScreen(
     val firebaseAnalytics =
         FirebaseAnalytics.getInstance(context)
 
+    val currentUser =
+        auth.currentUser
+
+    val studentDocumentId =
+        currentUser?.email ?: currentUser?.uid ?: ""
+
     val email =
-        auth.currentUser?.email ?: ""
+        currentUser?.email ?: studentDocumentId
 
-    LaunchedEffect(email, selectedLanguage) {
+    val loginType =
+        if (currentUser?.email?.endsWith("@uklo.edu.mk") == true)
+            "uklo"
+        else if (currentUser?.email != null)
+            "google"
+        else
+            "facebook"
 
-        if (!isGuest && email.isNotEmpty()) {
+    LaunchedEffect(studentDocumentId, selectedLanguage) {
+
+        if (!isGuest && studentDocumentId.isNotEmpty()) {
 
             db.collection("students")
-                .document(email)
+                .document(studentDocumentId)
                 .collection("ratings")
                 .get()
                 .addOnSuccessListener { snapshot ->
@@ -325,7 +339,7 @@ fun ReportScreen(
                                 selectedRatings[course.documentId] ?: 0
 
                             db.collection("students")
-                                .document(email)
+                                .document(studentDocumentId)
                                 .collection("ratings")
                                 .document(course.documentId)
                                 .update(
@@ -354,10 +368,7 @@ fun ReportScreen(
 
                                 bundle.putString(
                                     "login_type",
-                                    if (email.endsWith("@uklo.edu.mk"))
-                                        "uklo"
-                                    else
-                                        "google"
+                                    loginType
                                 )
 
                                 firebaseAnalytics.logEvent(

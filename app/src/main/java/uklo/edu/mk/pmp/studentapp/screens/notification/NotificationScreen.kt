@@ -51,8 +51,11 @@ fun NotificationScreen(
     val firebaseAnalytics =
         FirebaseAnalytics.getInstance(context)
 
-    val email =
-        auth.currentUser?.email ?: ""
+    val currentUser =
+        auth.currentUser
+
+    val studentDocumentId =
+        currentUser?.email ?: currentUser?.uid ?: ""
 
     var notifications by remember {
         mutableStateOf(
@@ -60,12 +63,12 @@ fun NotificationScreen(
         )
     }
 
-    LaunchedEffect(email) {
+    LaunchedEffect(studentDocumentId) {
 
-        if (!isGuest && email.isNotEmpty()) {
+        if (!isGuest && studentDocumentId.isNotEmpty()) {
 
             db.collection("students")
-                .document(email)
+                .document(studentDocumentId)
                 .collection("notifications")
                 .get()
                 .addOnSuccessListener { snapshot ->

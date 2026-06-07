@@ -11,6 +11,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.facebook.FacebookSdk
+import com.facebook.appevents.AppEventsLogger
+import android.content.Intent
 
 
 class MainActivity : ComponentActivity() {
@@ -19,6 +22,9 @@ class MainActivity : ComponentActivity() {
         savedInstanceState: Bundle?
     ) {
         super.onCreate(savedInstanceState)
+
+        FacebookSdk.sdkInitialize(applicationContext)
+        AppEventsLogger.activateApp(application)
 
         FirebaseMessaging
             .getInstance()
@@ -57,5 +63,25 @@ class MainActivity : ComponentActivity() {
                 AppNavigation()
             }
         }
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(
+            requestCode,
+            resultCode,
+            data
+        )
+
+        FacebookCallbackHolder
+            .callbackManager
+            .onActivityResult(
+                requestCode,
+                resultCode,
+                data
+            )
     }
 }

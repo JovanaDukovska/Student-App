@@ -81,9 +81,15 @@ fun ProfileScreen(
         mutableStateOf(false)
     }
 
-    val currentEmail =
+    val currentUser =
         FirebaseAuth.getInstance()
-            .currentUser?.email ?: ""
+            .currentUser
+
+    val studentDocumentId =
+        currentUser?.email ?: currentUser?.uid ?: ""
+
+    val currentEmail =
+        studentDocumentId
 
     val sharedPreferences =
         context.getSharedPreferences(
@@ -163,15 +169,18 @@ fun ProfileScreen(
 
     LaunchedEffect(selectedLanguage) {
 
-        val currentEmail =
-            auth.currentUser?.email ?: ""
+        val currentUser = auth.currentUser
 
-        email = currentEmail
+        val studentDocumentId =
+            currentUser?.email ?: currentUser?.uid ?: ""
 
-        if (currentEmail.isNotEmpty()) {
+        email =
+            currentUser?.email ?: "Facebook User"
+
+        if (studentDocumentId.isNotEmpty()) {
 
             db.collection("students")
-                .document(currentEmail)
+                .document(studentDocumentId)
                 .get()
                 .addOnSuccessListener { document ->
 
@@ -225,11 +234,22 @@ fun ProfileScreen(
                                 ?: ""
 
                     tuitionFee =
-                        document.getLong("tuitionFee")
-                            ?.toInt()
-                            ?: document.getDouble("tuitionFee")
+                        if (selectedLanguage == "MK")
+                            document.getLong("tuitionFeeMK")
                                 ?.toInt()
-                                    ?: 0
+                                ?: document.getDouble("tuitionFeeMK")
+                                    ?.toInt()
+                                ?: document.getLong("tuitionFee")
+                                    ?.toInt()
+                                ?: document.getDouble("tuitionFee")
+                                    ?.toInt()
+                                ?: 0
+                        else
+                            document.getLong("tuitionFee")
+                                ?.toInt()
+                                ?: document.getDouble("tuitionFee")
+                                    ?.toInt()
+                                ?: 0
                 }
         }
     }

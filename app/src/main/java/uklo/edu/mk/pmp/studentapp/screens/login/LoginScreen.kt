@@ -29,6 +29,12 @@ import com.google.firebase.auth.GoogleAuthProvider
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.google.firebase.auth.FacebookAuthProvider
 
 
 @Composable
@@ -49,6 +55,11 @@ fun LoginScreen(
 
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
+
+    val callbackManager =
+        uklo.edu.mk.pmp.studentapp
+            .FacebookCallbackHolder
+            .callbackManager
 
     Column(
         modifier = Modifier
@@ -170,6 +181,89 @@ fun LoginScreen(
                 } catch (_: Exception) {
                 }
             }
+
+        val facebookLauncher =
+            rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+
+                callbackManager.onActivityResult(
+                    result.resultCode,
+                    result.resultCode,
+                    result.data
+                )
+            }
+
+        DisposableEffect(Unit) {
+
+            LoginManager.getInstance().registerCallback(
+                callbackManager,
+                object : FacebookCallback<LoginResult> {
+
+                    override fun onSuccess(result: LoginResult) {
+
+                        val credential =
+                            FacebookAuthProvider.getCredential(
+                                result.accessToken.token
+                            )
+
+                        auth.signInWithCredential(credential)
+                            .addOnCompleteListener { task ->
+
+                                if (task.isSuccessful) {
+
+                                    FirebaseAnalytics
+                                        .getInstance(context)
+                                        .logEvent(
+                                            "facebook_login",
+                                            null
+                                        )
+
+                                    Toast.makeText(
+                                        context,
+                                        "Facebook Login Successful",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    onLoginClick()
+
+                                } else {
+
+                                    Toast.makeText(
+                                        context,
+                                        task.exception?.message
+                                            ?: "Facebook login failed",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                    }
+
+                    override fun onCancel() {
+
+                        Toast.makeText(
+                            context,
+                            "Facebook login cancelled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    override fun onError(error: FacebookException) {
+
+                        Toast.makeText(
+                            context,
+                            error.message ?: "Facebook login error",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            )
+
+            onDispose {
+                LoginManager.getInstance()
+                    .unregisterCallback(callbackManager)
+            }
+        }
 
         val gso =
             GoogleSignInOptions.Builder(
@@ -320,11 +414,11 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                Toast.makeText(
-                    context,
-                    "Facebook Login integration is prepared, but Meta verification is required for App ID.",
-                    Toast.LENGTH_LONG
-                ).show()
+                LoginManager.getInstance()
+                    .logInWithReadPermissions(
+                        context as android.app.Activity,
+                        listOf("public_profile")
+                    )
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp)

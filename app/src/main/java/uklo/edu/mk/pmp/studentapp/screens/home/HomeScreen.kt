@@ -131,10 +131,13 @@ fun HomeScreen(
 
         val currentUser = auth.currentUser
 
-        currentUser?.email?.let { email ->
+        val studentDocumentId =
+            currentUser?.email ?: currentUser?.uid ?: ""
+
+        if (studentDocumentId.isNotEmpty()) {
 
             db.collection("students")
-                .document(email)
+                .document(studentDocumentId)
                 .get()
                 .addOnSuccessListener { document ->
 
@@ -185,7 +188,7 @@ fun HomeScreen(
                                 ?: ""
 
                     db.collection("students")
-                        .document(email)
+                        .document(studentDocumentId)
                         .collection("subjects")
                         .get()
                         .addOnSuccessListener { snapshot ->
@@ -197,7 +200,7 @@ fun HomeScreen(
                         }
 
                     db.collection("students")
-                        .document(email)
+                        .document(studentDocumentId)
                         .collection("passedExams")
                         .get()
                         .addOnSuccessListener { snapshot ->
@@ -209,7 +212,7 @@ fun HomeScreen(
                         }
 
                     db.collection("students")
-                        .document(email)
+                        .document(studentDocumentId)
                         .collection("documents")
                         .get()
                         .addOnSuccessListener { snapshot ->
@@ -221,7 +224,7 @@ fun HomeScreen(
                         }
 
                     db.collection("students")
-                        .document(email)
+                        .document(studentDocumentId)
                         .collection("priceList")
                         .get()
                         .addOnSuccessListener { snapshot ->
